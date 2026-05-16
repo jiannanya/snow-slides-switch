@@ -1,83 +1,83 @@
 ---
 name: snow-slides-switch
-description: 'HTML幻灯片页面切换动画系统。为单页HTML演示文稿（PPT）实现多种页面切换过渡效果（左移、右移、上移、下移、缩放、翻转、淡入、模糊、弹性缩放），同时协调页面元素的入场动画，确保切换动画与元素动画同步叠加播放，不产生二次重复动画。适用场景：HTML PPT/Slides制作、单页幻灯片动画系统搭建、需要平滑页面切换且不破坏元素入场动画的场景。关键词：slides switch transition animation ppt 幻灯片切换 过渡动画 入场动画 stagger。'
-argument-hint: '描述目标PPT风格或需要的切换效果'
+description: 'HTML slide page-transition animation system. Implements multiple slide-switching effects (slide-left, slide-right, slide-up, slide-down, zoom, flip, fade, blur, elastic-scale) for single-page HTML presentations, while coordinating per-element entrance animations so that the slide transition and element animations play simultaneously — never sequentially — eliminating the double-animation problem. Use for: HTML PPT/Slides authoring, single-page presentation animation systems, smooth slide transitions that do not break element entrance animations. Keywords: slides switch transition animation ppt stagger entrance overlap.'
+argument-hint: 'Describe the target presentation style or desired transition effect'
 ---
 
-# snow-slides-switch — HTML幻灯片切换动画系统
+# snow-slides-switch — HTML Slide Transition Animation System
 
-## 核心设计原则
+## Core Design Principle
 
-> **防二次动画**：页面切换动画（slide transition）与页面元素入场动画（element entrance）**同步重叠播放**，而非顺序播放。切换动画开始后 50ms 即触发元素动画，两者在 600ms 切换窗口内并行完成。
+> **No Double-Animation**: The slide transition (page movement) and element entrance animations run **simultaneously in parallel**, not one after the other. Element animations begin 50 ms into the slide transition, so both complete within the same 600 ms window.
 
 ```
-时间轴:
-0ms    ─── 新页面从屏幕外开始滑入（CSS transition）
-50ms   ───── 页面元素同步开始入场动画（JS applyAnimations）
-600ms  ─────────── 滑入动画结束，页面已完全可见
-650ms  ──────────────── 清理工作（移除 trans-* 类、隐藏旧页面）
+Timeline:
+  0ms  ─── new slide starts moving in from off-screen  (CSS transition)
+ 50ms  ───── per-element entrance animations begin      (JS applyAnimations)
+600ms  ─────────── slide transition ends, page fully visible
+650ms  ──────────────── cleanup  (remove trans-* class, hide old slide)
 ```
 
 ---
 
-## 一、CSS 完整代码
+## I. Complete CSS
 
-### 1. 基础布局
+### 1. Stage Layout
 
 ```css
-/* 舞台容器：须有相对定位和 perspective 以支持 3D 翻转 */
+/* Stage container: needs position + perspective for 3-D flip */
 #app {
   position: relative;
-  width: var(--slide-w);   /* 例: 1280px */
-  height: var(--slide-h);  /* 例: 720px */
+  width: var(--slide-w);   /* e.g. 1280px */
+  height: var(--slide-h);  /* e.g.  720px */
   perspective: 2000px;
 }
 
-/* 幻灯片基础样式 */
+/* Base slide style */
 .slide {
   position: absolute;
   inset: 0;
   display: none;
-  /* 核心：CSS transition 驱动所有切换动画 */
+  /* Core: CSS transition drives every switching effect */
   transition:
     transform 0.6s cubic-bezier(.4, 0, .2, 1),
     opacity   0.6s ease,
     filter    0.6s ease;
 }
 
-/* 当前激活的页面 */
+/* Currently active slide */
 .slide.active {
-  display: flex; /* 或 block，按内容布局需求设定 */
+  display: flex; /* or block — adapt to your layout */
 }
 ```
 
-### 2. 各切换效果的"离屏状态"（进场前的初始位置）
+### 2. Off-Screen States (starting position before a slide enters)
 
 ```css
-/* 水平 / 垂直 滑动 */
+/* Horizontal / Vertical slides */
 .slide.trans-left  { transform: translateX(-100%); opacity: 0; }
 .slide.trans-right { transform: translateX(100%);  opacity: 0; }
 .slide.trans-up    { transform: translateY(-100%); opacity: 0; }
 .slide.trans-down  { transform: translateY(100%);  opacity: 0; }
 
-/* 缩放 */
-.slide.trans-zoom    { transform: scale(.7);         opacity: 0; }
-.slide.trans-scale-e { transform: scale(.3);         opacity: 0; } /* 弹性缩放 */
+/* Zoom */
+.slide.trans-zoom    { transform: scale(.7); opacity: 0; }
+.slide.trans-scale-e { transform: scale(.3); opacity: 0; } /* elastic zoom */
 
-/* 3D 翻转 */
+/* 3-D Flip */
 .slide.trans-flip { transform: rotateY(90deg); opacity: 0; }
 
-/* 淡入 */
+/* Fade */
 .slide.trans-fade { opacity: 0; }
 
-/* 模糊淡入 */
+/* Blur-fade */
 .slide.trans-blur { opacity: 0; filter: blur(12px); }
 ```
 
-### 3. 激活状态（`.active` 触发 CSS transition 完成进场）
+### 3. Active States (adding `.active` triggers the CSS transition into view)
 
 ```css
-/* 滑动类：统一归位 */
+/* Slide types — all return to origin */
 .slide.trans-left.active,
 .slide.trans-right.active,
 .slide.trans-up.active,
@@ -86,30 +86,30 @@ argument-hint: '描述目标PPT风格或需要的切换效果'
   opacity: 1;
 }
 
-/* 缩放类 */
+/* Zoom types */
 .slide.trans-zoom.active    { transform: scale(1); opacity: 1; }
 .slide.trans-scale-e.active { transform: scale(1); opacity: 1; }
 
-/* 翻转 */
+/* Flip */
 .slide.trans-flip.active { transform: rotateY(0); opacity: 1; }
 
-/* 淡入 */
+/* Fade */
 .slide.trans-fade.active { opacity: 1; }
 
-/* 模糊淡入 */
+/* Blur-fade */
 .slide.trans-blur.active { opacity: 1; filter: blur(0); }
 ```
 
-### 4. 元素入场动画关键帧
+### 4. Element Entrance Keyframes
 
 ```css
-/* 元素入场：带轻微上移 + 缩放的淡入，适合大多数内容块 */
+/* Primary entrance — subtle upward lift + scale fade-in */
 @keyframes fadeInStagger {
   from { opacity: 0; transform: translateY(30px) scale(.95); }
   to   { opacity: 1; transform: translateY(0)    scale(1);   }
 }
 
-/* 其他可选关键帧（按需使用） */
+/* Optional extras */
 @keyframes fadeInUp    { from { opacity:0; transform:translateY(40px)  } to { opacity:1; transform:translateY(0) } }
 @keyframes fadeInLeft  { from { opacity:0; transform:translateX(-50px) } to { opacity:1; transform:translateX(0) } }
 @keyframes fadeInRight { from { opacity:0; transform:translateX(50px)  } to { opacity:1; transform:translateX(0) } }
@@ -118,25 +118,25 @@ argument-hint: '描述目标PPT风格或需要的切换效果'
 @keyframes zoomInUp    { from { opacity:0; transform:scale(.6) translateY(40px) } to { opacity:1; transform:scale(1) translateY(0) } }
 ```
 
-### 5. 常驻持续动画类（切换时需重置重启）
+### 5. Continuous Animation Classes (must be reset on each slide enter)
 
 ```css
-/* 示例：脉冲、浮动等持续动画 —— 切换后由 JS 重置重启 */
-@keyframes pulse    { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
-@keyframes float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+/* Examples: pulse, float — reset and restarted by JS on slide enter */
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
 
-.pulse      { animation: pulse  2.5s ease-in-out infinite; }
-.float      { animation: float  3s   ease-in-out infinite; }
-.float-slow { animation: float  5s   ease-in-out infinite; }
+.pulse      { animation: pulse 2.5s ease-in-out infinite; }
+.float      { animation: float 3s   ease-in-out infinite; }
+.float-slow { animation: float 5s   ease-in-out infinite; }
 ```
 
 ---
 
-## 二、JavaScript 完整代码
+## II. Complete JavaScript
 
 ```javascript
 /* ========================================================
-   snow-slides-switch — 页面切换引擎
+   snow-slides-switch — Slide Transition Engine
    ======================================================== */
 
 let current = 0;
@@ -145,13 +145,13 @@ let transitioning = false;
 const slides = document.querySelectorAll('.slide');
 const total  = slides.length;
 
-// 顺序切换时轮换使用的效果列表
+// Transition pool: cycled through during sequential navigation
 const TRANSITIONS = [
   'trans-left', 'trans-right', 'trans-up', 'trans-down',
   'trans-zoom', 'trans-fade', 'trans-blur', 'trans-scale-e'
 ];
 
-// ⚠️ 需要在 applyAnimations 中重置的持续动画类（按实际使用的填写）
+// ⚠️ All continuous-animation class selectors that must be reset on enter
 const CONTINUOUS_ANIM_CLASSES = [
   '.pulse', '.pulse-slow', '.pulse-glow', '.pulse-glow-slow',
   '.float', '.float-slow', '.float-rotate',
@@ -163,9 +163,9 @@ const CONTINUOUS_ANIM_CLASSES = [
 ].join(',');
 
 /**
- * 切换到指定页面
- * @param {number} n    目标页面索引
- * @param {number} dir  方向：1=前进, -1=后退, 0=直接跳转
+ * Navigate to a slide.
+ * @param {number} n    Target slide index
+ * @param {number} dir  Direction: 1 = forward, -1 = backward, 0 = direct jump
  */
 function showSlide(n, dir) {
   if (transitioning) return;
@@ -177,36 +177,36 @@ function showSlide(n, dir) {
 
   if (idx === current) { transitioning = false; return; }
 
-  // 1. 隐藏当前页面（移除 active，触发旧页面的 CSS transition 淡出）
+  // 1. Deactivate current slide (removes .active → old slide fades/slides out)
   old.classList.remove('active');
 
-  // 2. 选择进场效果
+  // 2. Choose transition class
   let transClass;
   if (dir === 1)       transClass = TRANSITIONS[idx % TRANSITIONS.length];
   else if (dir === -1) transClass = TRANSITIONS[(total - idx) % TRANSITIONS.length];
   else                 transClass = nu.getAttribute('data-trans') || 'trans-fade';
-  transClass = 'trans-' + transClass.replace(/^trans-/, ''); // 统一加前缀
+  transClass = 'trans-' + transClass.replace(/^trans-/, ''); // normalise prefix
 
-  // 3. 将新页面置于离屏位置并设为可见（不加 active）
+  // 3. Position new slide off-screen and make it participate in layout
   nu.classList.add(transClass);
-  nu.style.display = 'flex'; // 使元素参与布局，才能触发 transition
+  nu.style.display = 'flex';
 
-  // 4. 双层 rAF：确保浏览器先渲染"离屏状态"，再启动 transition
+  // 4. Double rAF: let browser commit the off-screen state before starting transition
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      // 5. 加 active → CSS transition 自动将新页面从离屏动画到可见位置
+      // 5. Add .active → CSS transition animates slide into view
       nu.classList.add('active');
 
-      // ⚠️ 关键：在切换动画开始后 50ms 触发元素入场动画
-      // 两者并行播放，避免切换结束后元素再次播放入场动画（二次动画）
+      // ⚠️ KEY: fire element entrance animations 50ms INTO the slide transition
+      // Overlapping playback prevents a double-animation pause after the slide lands
       setTimeout(() => applyAnimations(nu), 50);
 
-      // 6. 切换动画结束后清理（600ms CSS 时长 + 50ms 缓冲）
+      // 6. Clean up after transition ends (600ms CSS duration + 50ms buffer)
       setTimeout(() => {
         nu.classList.remove(transClass);
         old.style.display = 'none';
         current = idx;
-        updateUI(); // 更新进度条、页码等 UI（自行实现）
+        updateUI(); // update progress bar, slide counter, etc. (implement yourself)
         transitioning = false;
       }, 650);
     });
@@ -214,34 +214,36 @@ function showSlide(n, dir) {
 }
 
 /**
- * 重置并重播目标页面内所有动画
- * 核心：先 animation='none' + 强制回流，再重新赋值，使动画从头播放
+ * Reset and replay all animations on the entering slide.
+ * Pattern: set animation='none', force reflow, then reassign to restart from zero.
  */
 function applyAnimations(slide) {
-  // — 重置分批入场元素（.anim-stagger + data-d 延迟属性）
+  // — Staggered entrance elements (.anim-stagger + data-d delay attribute)
   const staggerEls = slide.querySelectorAll('.anim-stagger');
   staggerEls.forEach((el, i) => {
     el.style.animation = 'none';
-    el.offsetHeight; // 强制浏览器回流，清除旧动画状态
+    el.offsetHeight; // force reflow — clears previous animation state
     const d     = parseFloat(el.getAttribute('data-d') || 0);
-    const delay = d * 500 + i * 45; // ms；可按需调整节奏
+    const delay = d * 500 + i * 45; // ms; tune as needed
     el.style.animation = `fadeInStagger .5s cubic-bezier(.25,.46,.45,.94) ${delay}ms both`;
-    //                                                                      ↑ 'both' 保证动画前元素不闪烁
+    //                                                                      ↑ 'both' keeps element
+    //                                                                        in 'from' state before
+    //                                                                        animation fires (no flash)
   });
 
-  // — 重置所有常驻持续动画（进入页面时重新从头循环）
+  // — Reset continuous animations so they restart from the beginning on entry
   slide.querySelectorAll(CONTINUOUS_ANIM_CLASSES).forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
-    el.style.animation = ''; // 清空内联样式，让 CSS class 动画重新生效
+    el.style.animation = ''; // empty string (not 'none') restores the CSS class animation
   });
 }
 
-// ——— 导航快捷方式 ———
+// ——— Navigation helpers ———
 function nextSlide() { showSlide(current + 1,  1); }
 function prevSlide() { showSlide(current - 1, -1); }
 
-// 键盘 & 滚轮导航
+// Keyboard & mouse-wheel navigation
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ')
     { e.preventDefault(); nextSlide(); }
@@ -256,7 +258,7 @@ document.addEventListener('wheel', e => {
   if (e.deltaY < -30) { e.preventDefault(); prevSlide(); }
 }, { passive: false });
 
-// 触屏滑动
+// Touch swipe
 let touchStartY = 0;
 document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
 document.addEventListener('touchend',   e => {
@@ -264,7 +266,7 @@ document.addEventListener('touchend',   e => {
   if (Math.abs(diff) > 50) { diff > 0 ? nextSlide() : prevSlide(); }
 });
 
-// 初始化
+// Initialise first slide
 window.addEventListener('load', () => {
   setTimeout(() => applyAnimations(slides[0]), 100);
 });
@@ -272,108 +274,107 @@ window.addEventListener('load', () => {
 
 ---
 
-## 三、HTML 使用规范
+## III. HTML Usage
 
-### 幻灯片标记模板
+### Slide Markup Template
 
 ```html
-<!-- data-trans: 直接跳转（dir=0）时使用的过渡效果 -->
-<!-- trans-* 类：同时作为该页面的默认 CSS 初始状态标记 -->
+<!-- data-trans: transition used when jumping directly to this slide (dir=0) -->
 <div class="slide active" data-slide="0" data-trans="blur">
-  <!-- 元素入场动画：添加 .anim-stagger 类 + data-d 属性（延迟秒数）-->
-  <h1 class="anim-stagger" data-d="0">标题</h1>
-  <p  class="anim-stagger" data-d="0.15">副标题，延迟 150ms 出现</p>
-  <div class="anim-stagger" data-d="0.3">内容块，延迟 300ms 出现</div>
+  <!-- Add .anim-stagger + data-d (delay in seconds) for staggered entrance -->
+  <h1  class="anim-stagger" data-d="0">Title</h1>
+  <p   class="anim-stagger" data-d="0.15">Subtitle — appears 150 ms later</p>
+  <div class="anim-stagger" data-d="0.3">Content block — appears 300 ms later</div>
 </div>
 
 <div class="slide" data-slide="1" data-trans="right">
-  <h2 class="anim-stagger" data-d="0">第二页标题</h2>
+  <h2 class="anim-stagger" data-d="0">Slide 2 heading</h2>
 </div>
 
 <div class="slide" data-slide="2" data-trans="zoom">
-  <!-- 持续动画类（.pulse .float 等）在页面切换时会自动重置重播 -->
+  <!-- Continuous-animation classes are auto-reset on slide enter -->
   <div class="anim-stagger float" data-d="0">🚀</div>
 </div>
 ```
 
-### `data-trans` 可用值
+### `data-trans` Values
 
-| 值         | 效果           | 描述                            |
-|------------|----------------|---------------------------------|
-| `left`     | 从左侧滑入     | `translateX(-100%) → 0`         |
-| `right`    | 从右侧滑入     | `translateX(100%) → 0`          |
-| `up`       | 从顶部滑入     | `translateY(-100%) → 0`         |
-| `down`     | 从底部滑入     | `translateY(100%) → 0`          |
-| `zoom`     | 缩小淡入       | `scale(0.7) → scale(1)`         |
-| `scale-e`  | 弹性缩放淡入   | `scale(0.3) → scale(1)`         |
-| `flip`     | Y 轴 3D 翻转   | `rotateY(90deg) → rotateY(0)`   |
-| `fade`     | 纯淡入         | `opacity 0 → 1`                 |
-| `blur`     | 模糊淡入       | `blur(12px)+opacity 0 → 正常`   |
+| Value      | Effect              | Transform                          |
+|------------|---------------------|------------------------------------|
+| `left`     | Slide in from left  | `translateX(-100%) → 0`            |
+| `right`    | Slide in from right | `translateX(100%) → 0`             |
+| `up`       | Slide in from top   | `translateY(-100%) → 0`            |
+| `down`     | Slide in from bottom| `translateY(100%) → 0`             |
+| `zoom`     | Zoom fade-in        | `scale(0.7) → scale(1)`            |
+| `scale-e`  | Elastic zoom        | `scale(0.3) → scale(1)`            |
+| `flip`     | 3-D Y-axis flip     | `rotateY(90deg) → rotateY(0)`      |
+| `fade`     | Pure fade           | `opacity 0 → 1`                    |
+| `blur`     | Blur fade-in        | `blur(12px)+opacity 0 → normal`    |
 
-### `data-d` 延迟规范
+### `data-d` Delay Reference
 
 ```
-data-d="0"    → 立即入场（切换后 50ms 内）
-data-d="0.1"  → 延迟约 100ms
-data-d="0.3"  → 延迟约 200ms（常用于正文）
-data-d="0.5"  → 延迟约 300ms（常用于末尾装饰）
+data-d="0"    → immediate (within 50 ms of transition start)
+data-d="0.1"  → ~100 ms delay
+data-d="0.3"  → ~200 ms delay  (typical body text)
+data-d="0.5"  → ~300 ms delay  (decorative / trailing elements)
 ```
 
-公式：`实际延迟(ms) = data-d × 500 + 元素序号 × 45`
+Formula: `actual delay (ms) = data-d × 500 + element index × 45`
 
 ---
 
-## 四、防二次动画机制详解
+## IV. No-Double-Animation: Deep Dive
 
-### 问题根源
+### The Problem
 
-若在切换动画**结束后**再触发元素入场动画，用户会看到：
-1. 页面滑入（600ms）
-2. 页面静止约 0ms
-3. 元素再次做入场动画
+If element entrance animations fire **after** the slide transition ends, users see:
+1. Slide animates in (600 ms)
+2. Brief visual pause
+3. Elements animate in again
 
-这就是"二次动画"——视觉上有明显停顿感，体验割裂。
+This two-phase motion feels disjointed and amateurish.
 
-### 解决方案：时间重叠
+### The Solution: Temporal Overlap
 
 ```
-showSlide() 调用时序：
+showSlide() call sequence:
 
-requestAnimationFrame × 2
-  └── nu.classList.add('active')       ← 切换动画开始
-      setTimeout(applyAnimations, 50)  ← 50ms 后开始元素动画（overlap！）
-      setTimeout(cleanup, 650)         ← 650ms 后清理
+  requestAnimationFrame × 2
+    └── nu.classList.add('active')          ← slide transition starts
+        setTimeout(applyAnimations, 50)     ← elements start 50ms later (OVERLAPPING)
+        setTimeout(cleanup, 650)            ← cleanup after transition
 
-[CSS transition: 600ms]  ████████████████████████████
-[元素动画起始偏移: 50ms]      ░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-                         ↑50ms
+[CSS transition:    600ms]  ████████████████████████████████
+[Elements offset:    50ms]       ░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+                            ↑50ms
 ```
 
-关键点：
-- 元素动画使用 `animation-fill-mode: both` → 动画开始前元素处于 "from" 状态（不可见），不会出现内容闪现
-- 元素动画时长（500ms）+ 分批延迟最长约 350ms，合计在 650ms 切换窗口内完成
-- `el.style.animation = 'none'` + `el.offsetHeight`（强制回流）确保每次切换时动画从头重播，不受上一次状态影响
+Key points:
+- `animation-fill-mode: both` keeps elements in their `from` (invisible) state before the animation fires — no content flash
+- Element animations (500 ms) plus maximum stagger (~350 ms) finish comfortably within the 650 ms window
+- `el.style.animation = 'none'` + `el.offsetHeight` (forced reflow) guarantees every animation restarts from frame zero regardless of prior state
 
-### 常驻动画的正确重置方式
+### Resetting Continuous Animations Correctly
 
 ```javascript
-// ✅ 正确：清空内联样式，让 CSS class 重新生效（从头循环）
+// ✅ Correct: empty string (not 'none') restores the CSS class animation
 el.style.animation = 'none';
-el.offsetHeight; // 回流
-el.style.animation = ''; // 不是 'none'，是空字符串！
+el.offsetHeight; // force reflow
+el.style.animation = ''; // ← empty, NOT 'none'
 
-// ❌ 错误：不做回流，浏览器可能不重置
+// ❌ Wrong: skipping the reflow; browser may not reset
 el.style.animation = 'none';
 el.style.animation = '';
 ```
 
 ---
 
-## 五、快速集成清单
+## V. Quick Integration Checklist
 
-- [ ] 复制 **CSS 基础布局** + **切换效果类** + **关键帧** 到 `<style>`
-- [ ] 复制 **JavaScript 切换引擎** 到 `<script>`（替换 `updateUI()` 为实际实现）
-- [ ] 所有 `.slide` 元素添加 `data-trans` 属性
-- [ ] 需要入场动画的元素添加 `.anim-stagger` 和 `data-d` 属性
-- [ ] 第一页添加 `class="slide active"`，其余页只有 `class="slide"`
-- [ ] 确认 `CONTINUOUS_ANIM_CLASSES` 列表包含项目中使用的所有持续动画类名
+- [ ] Copy **CSS layout** + **transition classes** + **keyframes** into `<style>`
+- [ ] Copy **JavaScript engine** into `<script>` (implement `updateUI()` as needed)
+- [ ] Add `data-trans` attribute to every `.slide` element
+- [ ] Add `.anim-stagger` + `data-d` to all elements that need entrance animation
+- [ ] First slide: `class="slide active"` — remaining slides: `class="slide"`
+- [ ] Confirm `CONTINUOUS_ANIM_CLASSES` lists every continuous-animation class used in the project

@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harness Engineering — 驾驭工程</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#fdf6e3;--bg2:#eee8d5;--text:#073642;--text2:#586e75;
+  --blue:#268bd2;--cyan:#2aa198;--green:#859900;--yellow:#b58900;
+  --orange:#cb4b16;--red:#dc322f;--magenta:#d33682;--violet:#6c71c4;
+  --slide-w:1280px;--slide-h:720px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#002b36;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden;
+}
+#app{position:relative;width:var(--slide-w);height:var(--slide-h);perspective:2000px}
+.slide{
+  position:absolute;inset:0;background:var(--bg);
+  display:none;flex-direction:column;justify-content:center;
+  padding:80px 100px;overflow:hidden;
+  transition:transform 0.6s cubic-bezier(.4,0,.2,1),opacity 0.6s ease,filter 0.6s ease;
+}
+.slide.active{display:flex}
+.slide.alt{background:var(--bg2)}
+.slide.split{flex-direction:row;align-items:center;gap:60px}
+.slide.split>div{flex:1}
+.slide.hero{align-items:center;text-align:center}
+.chart-box{width:100%;height:100%;min-height:300px}
+.num{font-size:140px;font-weight:900;color:var(--blue);opacity:.15;position:absolute;top:-10px;right:40px;line-height:1}
+h1{font-size:52px;font-weight:800;color:var(--text);line-height:1.3;letter-spacing:-.5px}
+h2{font-size:36px;font-weight:700;color:var(--text);margin-bottom:16px}
+h3{font-size:24px;font-weight:600;color:var(--blue);margin-bottom:12px;text-transform:uppercase;letter-spacing:2px}
+p{font-size:20px;color:var(--text2);line-height:1.7;max-width:800px}
+.tag{display:inline-block;padding:6px 18px;border-radius:20px;font-size:14px;font-weight:600;letter-spacing:1px;margin-bottom:24px}
+.tag.blue{background:#268bd220;color:var(--blue)}
+.tag.green{background:#85990020;color:var(--green)}
+.tag.orange{background:#cb4b1620;color:var(--orange)}
+.tag.magenta{background:#d3368220;color:var(--magenta)}
+.tag.violet{background:#6c71c420;color:var(--violet)}
+.meta{font-size:14px;color:var(--text2);opacity:.6;margin-top:32px}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--blue);z-index:101;transition:width .3s ease}
+.chapter{font-size:13px;font-weight:600;letter-spacing:3px;color:var(--blue);text-transform:uppercase;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:40px;width:100%}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;width:100%}
+.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.04);transition:all .35s cubic-bezier(.4,0,.2,1)}
+.card h4{font-size:18px;color:var(--text);margin-bottom:8px}
+.card p{font-size:15px}
+.icon{font-size:40px;margin-bottom:16px}
+.quote{border-left:4px solid var(--blue);padding:20px 28px;margin:20px 0;background:rgba(38,139,210,.04);font-style:italic;max-width:700px}
+.quote p{font-size:24px;color:var(--text)}
+.highlight{color:var(--blue);font-weight:700}
+.highlight2{color:var(--orange);font-weight:700}
+.big-num{font-size:96px;font-weight:900;color:var(--blue);line-height:1}
+.big-label{font-size:18px;color:var(--text2);margin-top:8px}
+.row{display:flex;gap:40px;align-items:center}
+.vs{font-size:32px;font-weight:900;color:var(--orange);padding:0 16px}
+ul{list-style:none;padding:0}
+ul li{padding:8px 0;padding-left:24px;position:relative;font-size:18px;color:var(--text2)}
+ul li::before{content:'';position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.divider{width:60px;height:3px;background:var(--blue);margin:20px 0}
+.subtitle{font-size:22px;color:var(--text2);font-weight:400;margin-top:8px}
+.overlay-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:2}
+.bg-pattern{position:absolute;inset:0;opacity:.03;background-image:radial-gradient(circle,var(--blue) 1px,transparent 1px);background-size:30px 30px}
+.chart-label{font-size:13px;color:var(--text2);text-align:center;margin-top:8px}
+.slide-number{position:absolute;bottom:20px;right:28px;font-size:12px;color:var(--text2);opacity:.4}
+.layers{display:flex;gap:20px;margin-top:24px}
+.layer-card{flex:1;background:#fff;border-radius:12px;padding:24px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04);border-top:3px solid var(--blue)}
+.layer-card:nth-child(2){border-top-color:var(--green)}
+.layer-card:nth-child(3){border-top-color:var(--orange)}
+.layer-card h4{font-size:18px;color:var(--text);margin-bottom:8px}
+.layer-card p{font-size:14px}
+.step{display:flex;gap:16px;align-items:flex-start;margin-bottom:20px}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0}
+.step-content h4{font-size:18px;color:var(--text);margin-bottom:4px}
+.step-content p{font-size:15px}
+.diagram{width:100%;max-width:500px;margin:0 auto}
+.pillar{display:flex;gap:24px;align-items:center}
+.pillar-box{flex:1;background:#fff;border-radius:12px;padding:28px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.pillar-box .label{font-size:13px;color:var(--blue);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.pillar-box .value{font-size:36px;font-weight:900;color:var(--text);margin:8px 0}
+
+/* ===== NAVIGATION ===== */
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;z-index:100;background:rgba(0,43,54,.85);padding:10px 20px;border-radius:30px;backdrop-filter:blur(10px)}
+.nav button{background:none;border:1px solid rgba(255,255,255,.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;transition:all .25s ease}
+.nav button:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.5);transform:scale(1.15)}
+.nav button:active{transform:scale(.9)}
+.nav .counter{color:#fff;font-size:14px;min-width:70px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* ===== KEYFRAME ANIMATIONS ===== */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInLeft{from{opacity:0;transform:translateX(-50px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeInRight{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+@keyframes scaleInElastic{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes rotateIn{from{opacity:0;transform:rotate(-15deg) scale(.7)}to{opacity:1;transform:rotate(0) scale(1)}}
+@keyframes bounceIn{0%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.08)}70%{transform:scale(.95)}100%{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(80px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-80px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blurIn{from{opacity:0;filter:blur(12px)}to{opacity:1;filter:blur(0)}}
+@keyframes flipInX{from{opacity:0;transform:perspective(600px) rotateX(-30deg)}to{opacity:1;transform:perspective(600px) rotateX(0)}}
+@keyframes flipInY{from{opacity:0;transform:perspective(600px) rotateY(30deg)}to{opacity:1;transform:perspective(600px) rotateY(0)}}
+@keyframes swingIn{0%{opacity:0;transform:rotateY(-60deg)}60%{opacity:1;transform:rotateY(10deg)}80%{transform:rotateY(-5deg)}100%{opacity:1;transform:rotateY(0)}}
+@keyframes zoomInUp{from{opacity:0;transform:scale(.6) translateY(40px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes lightSpeedLeft{from{opacity:0;transform:translateX(-100%) skewX(30deg)}60%{opacity:1;transform:skewX(-10deg)}80%{transform:skewX(3deg)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeInStagger{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Continuous animations */
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(38,139,210,.35)}50%{box-shadow:0 0 0 14px rgba(38,139,210,0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes floatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes floatRotate{0%,100%{transform:translateY(0) rotate(0)}33%{transform:translateY(-8px) rotate(2deg)}66%{transform:translateY(4px) rotate(-1deg)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes shimmerSlow{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes gradientShift{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+@keyframes bgSlide{0%{background-position:0 0}100%{background-position:60px 60px}}
+@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.1)}28%{transform:scale(1)}42%{transform:scale(1.1)}70%{transform:scale(1)}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes subtleGlow{0%,100%{text-shadow:0 0 4px rgba(38,139,210,.2)}50%{text-shadow:0 0 16px rgba(38,139,210,.5)}}
+@keyframes ripple{0%{box-shadow:0 0 0 0 rgba(38,139,210,.4)}100%{box-shadow:0 0 0 30px rgba(38,139,210,0)}}
+@keyframes gentleSwing{0%,100%{transform:rotate(0)}25%{transform:rotate(1.5deg)}75%{transform:rotate(-1.5deg)}}
+@keyframes colorShift{0%,100%{color:var(--blue)}50%{color:var(--cyan)}}
+@keyframes borderPulse{0%,100%{border-color:var(--blue)}50%{border-color:var(--cyan)}}
+@keyframes scaleBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+@keyframes slideBg{0%{background-position:0 0}100%{background-position:100% 100%}}
+
+/* Animation classes */
+.anim-up{animation:fadeInUp .7s cubic-bezier(.25,.46,.45,.94) both}
+.anim-down{animation:fadeInDown .7s cubic-bezier(.25,.46,.45,.94) both}
+.anim-left{animation:fadeInLeft .7s cubic-bezier(.25,.46,.45,.94) both}
+.anim-right{animation:fadeInRight .7s cubic-bezier(.25,.46,.45,.94) both}
+.anim-scale{animation:scaleIn .6s cubic-bezier(.25,.46,.45,.94) both}
+.anim-scale-e{animation:scaleInElastic .8s cubic-bezier(.34,1.56,.64,1) both}
+.anim-rotate{animation:rotateIn .7s cubic-bezier(.25,.46,.45,.94) both}
+.anim-bounce{animation:bounceIn .8s cubic-bezier(.34,1.56,.64,1) both}
+.anim-slide-up{animation:slideUp .8s cubic-bezier(.25,.46,.45,.94) both}
+.anim-blur{animation:blurIn .9s ease both}
+.anim-flip-x{animation:flipInX .8s ease both}
+.anim-swing{animation:swingIn .9s ease both}
+.anim-zoom-up{animation:zoomInUp .7s cubic-bezier(.25,.46,.45,.94) both}
+.anim-light-speed{animation:lightSpeedLeft .8s ease both}
+.anim-stagger{animation:fadeInStagger .6s cubic-bezier(.25,.46,.45,.94) both}
+
+/* Continuous animations */
+.pulse{animation:pulse 2.5s ease-in-out infinite}
+.pulse-slow{animation:pulse 4s ease-in-out infinite}
+.pulse-glow{animation:pulseGlow 2.5s ease-in-out infinite}
+.pulse-glow-slow{animation:pulseGlow 4s ease-in-out infinite}
+.float{animation:float 3s ease-in-out infinite}
+.float-slow{animation:floatSlow 5s ease-in-out infinite}
+.float-rotate{animation:floatRotate 4s ease-in-out infinite}
+.heartbeat{animation:heartbeat 2s ease-in-out infinite}
+.heartbeat-slow{animation:heartbeat 3.5s ease-in-out infinite}
+.breathe{animation:breathe 3s ease-in-out infinite}
+.subtle-glow{animation:subtleGlow 3s ease-in-out infinite}
+.gentle-swing{animation:gentleSwing 5s ease-in-out infinite;display:inline-block}
+.color-shift{animation:colorShift 4s ease-in-out infinite}
+.border-pulse{animation:borderPulse 3s ease-in-out infinite}
+.scale-breath{animation:scaleBreath 4s ease-in-out infinite}
+.shimmer-text{background:linear-gradient(90deg,var(--blue),var(--cyan),var(--orange),var(--blue));background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3s linear infinite}
+.shimmer-slow{background:linear-gradient(90deg,var(--blue),var(--cyan),var(--violet),var(--blue));background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmerSlow 5s linear infinite}
+.bg-animate{animation:bgSlide 8s linear infinite}
+.bg-animate-fast{animation:bgSlide 3s linear infinite}
+
+/* Slide transition effects */
+.slide.trans-left{transform:translateX(-100%);opacity:0}
+.slide.trans-right{transform:translateX(100%);opacity:0}
+.slide.trans-up{transform:translateY(-100%);opacity:0}
+.slide.trans-down{transform:translateY(100%);opacity:0}
+.slide.trans-zoom{transform:scale(.7);opacity:0}
+.slide.trans-flip{transform:rotateY(90deg);opacity:0}
+.slide.trans-fade{opacity:0}
+.slide.trans-blur{opacity:0;filter:blur(12px)}
+
+/* Slide-in active states */
+.slide.trans-left.active,.slide.trans-right.active,
+.slide.trans-up.active,.slide.trans-down.active{transform:translate(0);opacity:1}
+.slide.trans-zoom.active{transform:scale(1);opacity:1}
+.slide.trans-flip.active{transform:rotateY(0);opacity:1}
+.slide.trans-fade.active{opacity:1}
+.slide.trans-blur.active{opacity:1;filter:blur(0)}
+
+/* Ghost elements for transition */
+.ghost{pointer-events:none;position:absolute;inset:0;z-index:0}
+.ghost .bg-pattern{position:absolute;inset:0;opacity:.025;background-image:radial-gradient(circle,var(--blue) 1px,transparent 1px);background-size:30px 30px}
+
+/* Particle effects for hero slides */
+.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--blue);opacity:0;animation:particleFloat 6s linear infinite}
+@keyframes particleFloat{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.6}90%{opacity:.6}100%{opacity:0;transform:translateY(-100px) scale(1.5)}}
+
+/* Ripple effect on click */
+.ripple-effect{position:absolute;border-radius:50%;background:rgba(38,139,210,.2);transform:scale(0);animation:ripple .6s ease-out;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div id="app">
+
+<!-- ===== CHAPTER 1: OPENING (1-8) ===== -->
+<div class="slide hero active trans-blur" data-slide="0" data-trans="blur">
+  <div class="bg-pattern bg-animate"></div>
+  <div class="particles" id="particles-0"></div>
+  <span class="tag blue anim-stagger" style="--d:0">CHAPTER 1</span>
+  <h1 style="font-size:64px" class="anim-stagger" data-d="0.15">Harness<br>Engineering</h1>
+  <div class="divider anim-stagger" data-d="0.3"></div>
+  <p class="subtitle anim-stagger shimmer-text" data-d="0.4">驾驭工程 —— 当AI成为那匹烈马</p>
+  <div class="meta anim-stagger" data-d="0.55">基于硅谷前沿科技思想 · 2026</div>
+  <div class="slide-number">01</div>
+</div>
+
+<div class="slide hero trans-right" data-slide="1" data-trans="right">
+  <div class="bg-pattern bg-animate"></div>
+  <span class="tag orange anim-stagger" data-d="0">TRENDING</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">你有没有频繁刷到<br>一个新词？</h1>
+  <p style="font-size:28px;margin-top:20px" class="anim-stagger" data-d="0.3">"Harness Engineering"</p>
+  <div class="meta anim-stagger" data-d="0.45">硅谷科技论坛 · 国内大厂技术演讲 · 病毒式洗版</div>
+  <div class="slide-number">02</div>
+</div>
+
+<div class="slide hero trans-zoom" data-slide="2" data-trans="zoom">
+  <span class="tag violet anim-stagger" data-d="0">PERCEPTION</span>
+  <h1 style="font-size:42px" class="anim-stagger" data-d="0.12">听起来特别<span class="highlight">玄乎</span></h1>
+  <p style="font-size:24px;margin-top:16px;max-width:600px" class="anim-stagger" data-d="0.25">像某种高深的航天或汽车工程技术</p>
+  <div class="meta anim-stagger" data-d="0.4" style="margin-top:48px">但它远比你想的更接近现实</div>
+  <div class="slide-number">03</div>
+</div>
+
+<div class="slide split trans-left" data-slide="3" data-trans="left">
+  <div>
+    <span class="tag blue anim-stagger" data-d="0">VIRAL</span>
+    <h2 class="anim-stagger" data-d="0.1">病毒式速度</h2>
+    <h1 style="font-size:44px" class="anim-stagger" data-d="0.2">洗版各大<br>科技论坛</h1>
+    <p style="margin-top:16px" class="anim-stagger" data-d="0.35">从硅谷到国内大厂，技术负责人的演讲中频繁出现</p>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-viral" data-d="0.2"></div></div>
+  <div class="slide-number">04</div>
+</div>
+
+<div class="slide hero trans-fade" data-slide="4" data-trans="fade">
+  <span class="tag green anim-stagger" data-d="0">AGENDA</span>
+  <h1 class="anim-stagger" data-d="0.12">今天从基本概念<br>给你讲透</h1>
+  <div class="divider anim-stagger" data-d="0.25"></div>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.35">到底什么是 Harness Engineering</p>
+  <div class="slide-number">05</div>
+</div>
+
+<div class="slide trans-up" data-slide="5" data-trans="up">
+  <span class="tag blue anim-stagger" data-d="0">OVERVIEW</span>
+  <h2 class="anim-stagger" data-d="0.1">本期内容导览</h2>
+  <div class="grid3 anim-stagger" style="margin-top:24px" data-d="0.2">
+    <div class="card anim-stagger" data-d="0.2"><div class="icon float-rotate">🏇</div><h4>词源追溯</h4><p>Harness从马具到AI语境</p></div>
+    <div class="card anim-stagger" data-d="0.28"><div class="icon float-rotate">⚡</div><h4>核心问题</h4><p>AI越强越容易跑偏</p></div>
+    <div class="card anim-stagger" data-d="0.36"><div class="icon float-rotate">🔧</div><h4>三大层面</h4><p>约束规则·工具组装·反馈闭环</p></div>
+    <div class="card anim-stagger" data-d="0.44"><div class="icon float-rotate">🏗️</div><h4>工程本质</h4><p>为什么是工程不是管理</p></div>
+    <div class="card anim-stagger" data-d="0.52"><div class="icon float-rotate">🎯</div><h4>深层逻辑</h4><p>确定性对抗概率性</p></div>
+    <div class="card anim-stagger" data-d="0.6"><div class="icon float-rotate">🚀</div><h4>终极目标</h4><p>打造7×24h超级数字员工</p></div>
+  </div>
+  <div class="slide-number">06</div>
+</div>
+
+<div class="slide hero alt trans-zoom" data-slide="6" data-trans="zoom">
+  <span class="tag magenta anim-stagger" data-d="0">READY</span>
+  <h1 style="font-size:40px" class="anim-stagger" data-d="0.12">让我们开始这场<br>关于<span class="highlight heartbeat">驾驭</span>的旅程</h1>
+  <div class="divider anim-stagger" data-d="0.3"></div>
+  <div class="slide-number">07</div>
+</div>
+
+<!-- ===== CHAPTER 2: ETYMOLOGY & ORIGIN (8-15) ===== -->
+<div class="slide hero trans-blur" data-slide="7" data-trans="blur">
+  <span class="tag blue anim-stagger" data-d="0">CHAPTER 2</span>
+  <h1 style="font-size:56px" class="anim-stagger" data-d="0.12">词的起源</h1>
+  <p style="font-size:22px;margin-top:12px" class="anim-stagger" data-d="0.25">Harness 这个词从何而来？</p>
+  <div class="slide-number">08</div>
+</div>
+
+<div class="slide split trans-right" data-slide="8" data-trans="right">
+  <div>
+    <span class="tag orange anim-stagger" data-d="0">ETYMOLOGY</span>
+    <h2 class="anim-stagger" data-d="0.1">Harness 原始含义</h2>
+    <h1 style="font-size:60px;color:var(--text)" class="anim-stagger" data-d="0.2">马具</h1>
+    <p style="margin-top:12px" class="anim-stagger" data-d="0.3">骑马用的那套缰绳、马鞍和笼头</p>
+    <div class="quote border-pulse anim-stagger" data-d="0.4" style="margin-top:20px"><p>"控制力量、引导方向的工具系统"</p></div>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-harness" data-d="0.2"></div></div>
+  <div class="slide-number">09</div>
+</div>
+
+<div class="slide hero alt trans-scale-e" data-slide="9" data-trans="scale-e">
+  <span class="tag green anim-stagger" data-d="0">TRANSLATION</span>
+  <h1 style="font-size:52px" class="anim-stagger" data-d="0.12">当下AI语境里<br>大家叫它</h1>
+  <p style="font-size:42px;color:var(--blue);font-weight:800;margin-top:16px" class="anim-stagger heartbeat" data-d="0.3">驾驭工程</p>
+  <div class="meta anim-stagger" data-d="0.45">Harness → 驾驭 | Engineering → 工程</div>
+  <div class="slide-number">10</div>
+</div>
+
+<div class="slide trans-left" data-slide="10" data-trans="left">
+  <span class="tag violet anim-stagger" data-d="0">WHY THIS NAME</span>
+  <h2 class="anim-stagger" data-d="0.1">为什么会有这个名字？</h2>
+  <div class="row anim-stagger" style="margin-top:24px" data-d="0.2">
+    <div style="flex:1" class=" anim-stagger" data-d="0.2"><div class="big-num">01</div><div class="big-label">技术反差</div><p style="margin-top:12px">AI能力飞速增长与可控性之间的矛盾日益突出</p></div>
+    <div style="flex:1" class=" anim-stagger" data-d="0.32"><div class="big-num">02</div><div class="big-label">隐喻精确</div><p style="margin-top:12px">"驾驭"精准描述了人类与AI之间的新关系</p></div>
+    <div style="flex:1" class=" anim-stagger" data-d="0.44"><div class="big-num">03</div><div class="big-label">工程思维</div><p style="margin-top:12px">不是魔法咒语，而是系统性的工程方案</p></div>
+  </div>
+  <div class="slide-number">11</div>
+</div>
+
+<div class="slide trans-fade" data-slide="11" data-trans="fade">
+  <span class="tag blue anim-stagger" data-d="0">EVOLUTION</span>
+  <h2 class="anim-stagger" data-d="0.1">AI角色的演变</h2>
+  <div class="row anim-stagger" style="margin-top:24px;align-items:stretch" data-d="0.2">
+    <div class="card anim-stagger" style="flex:1" data-d="0.2"><p style="font-size:13px;color:var(--text2)">过去</p><h4 style="font-size:22px">小助手</h4><p>帮你画画图<br>写写文案<br>聊聊天</p></div>
+    <div style="display:flex;align-items:center;font-size:32px;color:var(--blue)" class="anim-stagger" data-d="0.35">→</div>
+    <div class="card anim-stagger" style="flex:1" data-d="0.4"><p style="font-size:13px;color:var(--text2)">现在</p><h4 style="font-size:22px">数字工程师</h4><p>写几万行代码<br>操作电脑修Bug<br>调用第三方API</p></div>
+    <div style="display:flex;align-items:center;font-size:32px;color:var(--orange)" class="anim-stagger" data-d="0.55">→</div>
+    <div class="card anim-stagger" style="flex:1" data-d="0.6"><p style="font-size:13px;color:var(--text2)">Harness目标</p><h4 style="font-size:22px">超级数字员工</h4><p>7×24小时稳定<br>可靠不出错<br>自主完成任务</p></div>
+  </div>
+  <div class="slide-number">12</div>
+</div>
+
+<div class="slide split trans-right" data-slide="12" data-trans="right">
+  <div>
+    <span class="tag orange anim-stagger" data-d="0">INSIGHT</span>
+    <h2 class="anim-stagger" data-d="0.1">AI不再只是</h2>
+    <h1 style="font-size:44px" class="anim-stagger" data-d="0.2">嘴皮子厉害</h1>
+    <p style="margin-top:12px" class="anim-stagger" data-d="0.3">它开始有<span class="highlight2 pulse">动手能力</span>了</p>
+    <p style="margin-top:8px" class="anim-stagger" data-d="0.4">从文本生成到直接操作电脑、调用API、修改代码——AI的自主行动能力正在爆发式增长</p>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-capability" data-d="0.2"></div></div>
+  <div class="slide-number">13</div>
+</div>
+
+<!-- ===== CHAPTER 3: THE PROBLEM (14-22) ===== -->
+<div class="slide hero trans-blur" data-slide="13" data-trans="blur">
+  <span class="tag orange anim-stagger" data-d="0">CHAPTER 3</span>
+  <h1 style="font-size:56px" class="anim-stagger" data-d="0.12">问题随之而来</h1>
+  <p style="font-size:24px;margin-top:12px" class="anim-stagger" data-d="0.25">能力越强，越容易跑偏</p>
+  <div class="slide-number">14</div>
+</div>
+
+<div class="slide trans-zoom" data-slide="14" data-trans="zoom">
+  <span class="tag magenta anim-stagger" data-d="0">PARADOX</span>
+  <h2 class="anim-stagger" data-d="0.1">能力与可控性的悖论</h2>
+  <div class="chart-box anim-stagger" id="chart-paradox" style="margin-top:24px" data-d="0.2"></div>
+  <div class="chart-label anim-stagger" data-d="0.4">AI能力越强 → 失控风险越高 → 驾驭需求越迫切</div>
+  <div class="slide-number">15</div>
+</div>
+
+<div class="slide hero alt trans-left" data-slide="15" data-trans="left">
+  <span class="tag orange anim-stagger" data-d="0">METAPHOR</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">现在的AI就像<br>一匹<span class="highlight2 pulse">力大无穷</span>的野马</h1>
+  <div class="divider anim-stagger" data-d="0.25"></div>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.35">跑得确实快，但脾气也大</p>
+  <div class="slide-number">16</div>
+</div>
+
+<div class="slide trans-fade" data-slide="16" data-trans="fade">
+  <span class="tag orange anim-stagger" data-d="0">WILD HORSE</span>
+  <h2 class="anim-stagger" data-d="0.1">野马的三大毛病</h2>
+  <div class="grid3 anim-stagger" style="margin-top:24px" data-d="0.2">
+    <div class="card anim-stagger" data-d="0.2"><div class="icon float-rotate">🤷</div><h4>忘记目标</h4><p>让它长跑，跑一半就忘了为什么出发</p></div>
+    <div class="card anim-stagger" data-d="0.32"><div class="icon float-rotate">😴</div><h4>偷懒瞎编</h4><p>偶尔偷懒、会瞎编，输出不可靠</p></div>
+    <div class="card anim-stagger" data-d="0.44"><div class="icon float-rotate">🪝</div><h4>自作聪明</h4><p>绕过规矩、突破限制，产生安全风险</p></div>
+  </div>
+  <div class="quote border-pulse anim-stagger" data-d="0.55" style="margin-top:28px"><p>"你有好马，但随时可能被掀翻在地"</p></div>
+  <div class="slide-number">17</div>
+</div>
+
+<div class="slide split trans-right" data-slide="17" data-trans="right">
+  <div>
+    <span class="tag orange anim-stagger" data-d="0">RISK</span>
+    <h2 class="anim-stagger" data-d="0.1">AI失控的<br>常见表现</h2>
+    <ul style="margin-top:16px">
+      <li class="anim-stagger" data-d="0.2">生成有害或不安全内容</li>
+      <li class="anim-stagger" data-d="0.28">偏离原始任务目标</li>
+      <li class="anim-stagger" data-d="0.36">访问不该碰的系统资源</li>
+      <li class="anim-stagger" data-d="0.44">输出不可靠的虚假信息</li>
+      <li class="anim-stagger" data-d="0.52">在长任务中迷失方向</li>
+    </ul>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-risk" data-d="0.2"></div></div>
+  <div class="slide-number">18</div>
+</div>
+
+<div class="slide hero trans-scale-e" data-slide="18" data-trans="scale-e">
+  <span class="tag orange anim-stagger" data-d="0">QUESTION</span>
+  <h1 style="font-size:60px" class="anim-stagger heartbeat" data-d="0.15">那怎么办？</h1>
+  <div class="divider anim-stagger" data-d="0.3"></div>
+  <p style="font-size:28px" class="anim-stagger" data-d="0.4">这就引出了 Harness Engineering</p>
+  <div class="slide-number">19</div>
+</div>
+
+<!-- ===== CHAPTER 4: CORE DEFINITION (20-28) ===== -->
+<div class="slide hero trans-blur" data-slide="19" data-trans="blur">
+  <span class="tag blue anim-stagger" data-d="0">CHAPTER 4</span>
+  <h1 style="font-size:56px" class="anim-stagger" data-d="0.12">核心定义</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">什么是 Harness Engineering？</p>
+  <div class="slide-number">20</div>
+</div>
+
+<div class="slide trans-fade" data-slide="20" data-trans="fade">
+  <span class="tag blue anim-stagger" data-d="0">DEFINITION</span>
+  <h2 class="anim-stagger" data-d="0.1">最核心的定义</h2>
+  <div class="quote border-pulse anim-stagger" data-d="0.25" style="margin-top:24px;max-width:900px">
+    <p style="font-size:28px">既然<span class="highlight">模型是那匹烈马</span>，我们就得给它套上一套精良的<span class="highlight heartbeat">"马具"</span></p>
+  </div>
+  <p style="margin-top:24px;font-size:18px" class="anim-stagger" data-d="0.4">这套马具不提供动力，它只干几件最关键的工程活：<br><strong style="color:var(--text)">管方向、管节奏、管安全</strong></p>
+  <div class="slide-number">21</div>
+</div>
+
+<div class="slide trans-left" data-slide="21" data-trans="left">
+  <span class="tag green anim-stagger" data-d="0">ARCHITECTURE</span>
+  <h2 class="anim-stagger" data-d="0.1">外骨骼基础设施</h2>
+  <p class="anim-stagger" data-d="0.2">Harness 是在AI模型外面包裹的一层"外骨骼基础设施"</p>
+  <div class="chart-box anim-stagger" id="chart-exoskeleton" style="margin-top:16px" data-d="0.3"></div>
+  <div class="slide-number">22</div>
+</div>
+
+<div class="slide trans-right" data-slide="22" data-trans="right">
+  <span class="tag blue anim-stagger" data-d="0">THREE LAYERS</span>
+  <h2 class="anim-stagger" data-d="0.1">Harness 的三大层面</h2>
+  <div class="layers anim-stagger" style="margin-top:28px" data-d="0.2">
+    <div class="layer-card pulse-slow anim-stagger" data-d="0.2"><h4>🔒 约束与规则</h4><p>画一个透明的金刚圈<br>设定安全边界和护栏</p></div>
+    <div class="layer-card pulse-slow anim-stagger" data-d="0.32"><h4>🔧 环境与工具组装</h4><p>接浏览器、沙盒、知识库<br>让AI有动手的环境</p></div>
+    <div class="layer-card pulse-slow anim-stagger" data-d="0.44"><h4>🔄 反馈闭环</h4><p>拆任务、设检查站<br>保证长赛道不跑偏</p></div>
+  </div>
+  <div class="slide-number">23</div>
+</div>
+
+<!-- ===== CHAPTER 5: LAYER 1 - CONSTRAINTS (24-30) ===== -->
+<div class="slide hero alt trans-blur" data-slide="23" data-trans="blur">
+  <span class="tag magenta anim-stagger" data-d="0">LAYER 1</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">约束与规则</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">透明的金刚圈</p>
+  <div class="slide-number">24</div>
+</div>
+
+<div class="slide trans-fade" data-slide="24" data-trans="fade">
+  <span class="tag magenta anim-stagger" data-d="0">BOUNDARIES</span>
+  <h2 class="anim-stagger" data-d="0.1">AI干活不能由着性子来</h2>
+  <div class="row anim-stagger" style="margin-top:24px" data-d="0.2">
+    <div style="flex:1;text-align:center" class="anim-stagger" data-d="0.2">
+      <div style="width:160px;height:160px;border-radius:50%;border:4px dashed var(--blue);margin:0 auto;display:flex;align-items:center;justify-content:center;flex-direction:column" class="pulse-glow">
+        <p style="font-size:14px;text-align:center;color:var(--text)">规则之内<br><strong style="color:var(--blue)">自由创造</strong></p>
+      </div>
+      <p style="text-align:center;margin-top:16px;font-size:16px">金刚圈内任意发挥创造力</p>
+    </div>
+    <div style="color:var(--text2);font-size:32px" class="anim-stagger" data-d="0.35">→</div>
+    <div style="flex:1;text-align:center" class="anim-stagger" data-d="0.4">
+      <div style="width:160px;height:160px;border-radius:50%;border:4px solid var(--orange);margin:0 auto;display:flex;align-items:center;justify-content:center" class="pulse" data-d="0.4">
+        <p style="font-size:14px;text-align:center;color:var(--orange);font-weight:700">边界触发<br>护栏拦截</p>
+      </div>
+      <p style="text-align:center;margin-top:16px;font-size:16px">一旦想跳出边界就被挡回</p>
+    </div>
+  </div>
+  <div class="slide-number">25</div>
+</div>
+
+<div class="slide trans-up" data-slide="25" data-trans="up">
+  <span class="tag orange anim-stagger" data-d="0">GUARDRAILS</span>
+  <h2 class="anim-stagger" data-d="0.1">悬崖边的护栏</h2>
+  <p class="anim-stagger" data-d="0.2">Harness系统就像护栏一样，在AI即将越界时把它挡回来</p>
+  <div class="chart-box anim-stagger" id="chart-guardrail" style="margin-top:24px" data-d="0.3"></div>
+  <div class="slide-number">26</div>
+</div>
+
+<div class="slide trans-right" data-slide="26" data-trans="right">
+  <span class="tag blue anim-stagger" data-d="0">OPENAI</span>
+  <h2 class="anim-stagger" data-d="0.1">OpenAI 的工程定义</h2>
+  <div class="quote border-pulse anim-stagger" data-d="0.25" style="margin-top:24px;max-width:900px">
+    <p style="font-size:26px">"每当AI犯一次错，我们就工程化地搞一个方案，让它<span class="highlight heartbeat">永远不再犯同样的错</span>"</p>
+  </div>
+  <p style="margin-top:28px" class="anim-stagger" data-d="0.45">这是一个朴素但极其强大的工程哲学——用系统性的方案而不是临时的修补来解决问题</p>
+  <div class="slide-number">27</div>
+</div>
+
+<div class="slide split trans-left" data-slide="27" data-trans="left">
+  <div>
+    <span class="tag green anim-stagger" data-d="0">PRINCIPLE</span>
+    <h2 class="anim-stagger" data-d="0.1">约束规则的核心原则</h2>
+    <ul style="margin-top:16px">
+      <li class="anim-stagger" data-d="0.2">预设边界，而非事后补救</li>
+      <li class="anim-stagger" data-d="0.28">硬性约束，而非软性建议</li>
+      <li class="anim-stagger" data-d="0.36">自动化拦截，而非人工审核</li>
+      <li class="anim-stagger" data-d="0.44">工程化方案，而非临时修补</li>
+    </ul>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-constraint-types" data-d="0.2"></div></div>
+  <div class="slide-number">28</div>
+</div>
+
+<!-- ===== CHAPTER 6: LAYER 2 - ENVIRONMENT & TOOLS (29-35) ===== -->
+<div class="slide hero alt trans-blur" data-slide="28" data-trans="blur">
+  <span class="tag green anim-stagger" data-d="0">LAYER 2</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">环境与工具组装</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">让AI有动手的环境</p>
+  <div class="slide-number">29</div>
+</div>
+
+<div class="slide trans-scale-e" data-slide="29" data-trans="scale-e">
+  <span class="tag green anim-stagger" data-d="0">ESSENCE</span>
+  <h2 class="anim-stagger" data-d="0.1">AI本质上是数学概率模型</h2>
+  <p class="anim-stagger" data-d="0.2">不是真实世界里的人，它需要<span class="highlight">工程环境</span>才能从聊天机器变成数字工程师</p>
+  <div class="grid3 anim-stagger" style="margin-top:28px" data-d="0.3">
+    <div class="card anim-stagger" data-d="0.3"><div class="icon float">🌐</div><h4>浏览器</h4><p>查证事实，获取最新信息</p></div>
+    <div class="card anim-stagger" data-d="0.4"><div class="icon float">📦</div><h4>沙盒</h4><p>安全运行代码，验证方案</p></div>
+    <div class="card anim-stagger" data-d="0.5"><div class="icon float">📚</div><h4>知识库</h4><p>接入公司内部知识，防止胡编</p></div>
+  </div>
+  <div class="slide-number">30</div>
+</div>
+
+<div class="slide split trans-fade" data-slide="30" data-trans="fade">
+  <div>
+    <span class="tag green anim-stagger" data-d="0">TOOLS</span>
+    <h2 class="anim-stagger" data-d="0.1">工具组装<br>的关键问题</h2>
+    <ul style="margin-top:16px">
+      <li class="anim-stagger" data-d="0.2">这些工具怎么接？</li>
+      <li class="anim-stagger" data-d="0.28">接上以后按什么步骤干活？</li>
+      <li class="anim-stagger" data-d="0.36">工具之间如何协调？</li>
+      <li class="anim-stagger" data-d="0.44">出现错误怎么回退？</li>
+    </ul>
+    <p style="margin-top:16px" class="anim-stagger" data-d="0.5">这就是Harness在组装的——<strong>工具链的编排</strong></p>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-tools" data-d="0.2"></div></div>
+  <div class="slide-number">31</div>
+</div>
+
+<div class="slide trans-right" data-slide="31" data-trans="right">
+  <span class="tag green anim-stagger" data-d="0">PIPELINE</span>
+  <h2 class="anim-stagger" data-d="0.1">从聊天机器到数字工程师</h2>
+  <div class="chart-box anim-stagger" id="chart-pipeline" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">32</div>
+</div>
+
+<!-- ===== CHAPTER 7: LAYER 3 - FEEDBACK LOOPS (33-39) ===== -->
+<div class="slide hero alt trans-blur" data-slide="32" data-trans="blur">
+  <span class="tag orange anim-stagger" data-d="0">LAYER 3</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">长任务的<br>反馈闭环</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">补给站与路标</p>
+  <div class="slide-number">33</div>
+</div>
+
+<div class="slide trans-fade" data-slide="33" data-trans="fade">
+  <span class="tag orange anim-stagger" data-d="0">ATTENTION</span>
+  <h2 class="anim-stagger" data-d="0.1">AI的有效注意力是有限的</h2>
+  <div class="row anim-stagger" style="margin-top:24px" data-d="0.2">
+    <div style="flex:1;text-align:center" class=" anim-stagger" data-d="0.2"><div class="big-num" style="color:var(--green)">200K</div><div class="big-label">宣称上下文窗口</div><p style="margin-top:8px">能装下整本长篇小说</p></div>
+    <div style="color:var(--text2);font-size:28px" class="anim-stagger" data-d="0.35">≠</div>
+    <div style="flex:1;text-align:center" class=" anim-stagger" data-d="0.4"><div class="big-num" style="color:var(--orange) heartbeat">有限</div><div class="big-label">有效注意力</div><p style="margin-top:8px">几小时复杂任务中会忘事</p></div>
+  </div>
+  <div class="quote border-pulse anim-stagger" data-d="0.5" style="margin-top:24px"><p>"做着做着就会忘事儿"</p></div>
+  <div class="slide-number">34</div>
+</div>
+
+<div class="slide trans-left" data-slide="34" data-trans="left">
+  <span class="tag orange anim-stagger" data-d="0">SOLUTION</span>
+  <h2 class="anim-stagger" data-d="0.1">Harness 的解决方案</h2>
+  <div class="pillar anim-stagger" style="margin-top:28px" data-d="0.2">
+    <div class="pillar-box anim-stagger" data-d="0.2"><div class="label">步骤1</div><div class="value">拆</div><p style="font-size:16px">大任务拆成小步骤</p></div>
+    <div style="font-size:24px;color:var(--blue)" class="anim-stagger" data-d="0.35">→</div>
+    <div class="pillar-box anim-stagger" data-d="0.4"><div class="label">步骤2</div><div class="value">查</div><p style="font-size:16px">每个环节强制检查打分</p></div>
+    <div style="font-size:24px;color:var(--blue)" class="anim-stagger" data-d="0.55">→</div>
+    <div class="pillar-box anim-stagger" data-d="0.6"><div class="label">步骤3</div><div class="value">判</div><p style="font-size:16px">干得好继续/干砸打回</p></div>
+  </div>
+  <div class="slide-number">35</div>
+</div>
+
+<div class="slide trans-up" data-slide="35" data-trans="up">
+  <span class="tag orange anim-stagger" data-d="0">METAPHOR</span>
+  <h2 class="anim-stagger" data-d="0.1">补给站与路标</h2>
+  <p class="anim-stagger" data-d="0.2">就像给野马跑的路线上设置了无数个补给站和路标，保证它不会在漫长的赛道上跑偏</p>
+  <div class="chart-box anim-stagger" id="chart-checkpoints" style="margin-top:20px" data-d="0.3"></div>
+  <div class="slide-number">36</div>
+</div>
+
+<div class="slide split trans-zoom" data-slide="36" data-trans="zoom">
+  <div>
+    <span class="tag blue anim-stagger" data-d="0">FEEDBACK</span>
+    <h2 class="anim-stagger" data-d="0.1">反馈闭环<br>的核心价值</h2>
+    <ul style="margin-top:16px">
+      <li class="anim-stagger" data-d="0.2">防止任务偏离目标</li>
+      <li class="anim-stagger" data-d="0.28">及时发现并纠正错误</li>
+      <li class="anim-stagger" data-d="0.36">保持长时间稳定运行</li>
+      <li class="anim-stagger" data-d="0.44">积累经验持续改进</li>
+    </ul>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-feedback-value" data-d="0.2"></div></div>
+  <div class="slide-number">37</div>
+</div>
+
+<!-- ===== CHAPTER 8: ENGINEERING VS MANAGEMENT (38-44) ===== -->
+<div class="slide hero trans-blur" data-slide="37" data-trans="blur">
+  <span class="tag violet anim-stagger" data-d="0">CHAPTER 5</span>
+  <h1 style="font-size:52px" class="anim-stagger shimmer-text" data-d="0.12">为什么叫"工程"<br>不叫"管理"？</h1>
+  <div class="slide-number">38</div>
+</div>
+
+<div class="slide trans-right" data-slide="38" data-trans="right">
+  <span class="tag violet anim-stagger" data-d="0">DIFFERENCE</span>
+  <h2 class="anim-stagger" data-d="0.1">这还真不一样</h2>
+  <div class="row anim-stagger" style="margin-top:28px;align-items:stretch" data-d="0.2">
+    <div class="card anim-stagger" style="flex:1;border-top:4px solid var(--orange)" data-d="0.2"><h4 style="font-size:20px;color:var(--orange)">管理学</h4><p style="margin-top:12px">谈心、做思想工作<br>激励、建立信任<br>适合管理<strong>人</strong></p></div>
+    <div class="card anim-stagger" style="flex:1;border-top:4px solid var(--blue)" data-d="0.4"><h4 style="font-size:20px;color:var(--blue)">Harness</h4><p style="margin-top:12px">代码、工具链、自动化脚本<br>硬性约束、系统规则<br>适合驾驭<strong>AI</strong></p></div>
+  </div>
+  <div class="quote border-pulse anim-stagger" data-d="0.5" style="margin-top:24px;max-width:800px"><p>"AI不是人，你不能跟它谈心做思想工作"</p></div>
+  <div class="slide-number">39</div>
+</div>
+
+<div class="slide trans-left" data-slide="39" data-trans="left">
+  <span class="tag violet anim-stagger" data-d="0">ENGINEERING</span>
+  <h2 class="anim-stagger" data-d="0.1">实实在在的系统工程</h2>
+  <div class="pillar anim-stagger" style="margin-top:28px" data-d="0.2">
+    <div class="pillar-box anim-stagger" data-d="0.2"><div class="label">手段</div><div class="value">代码</div></div>
+    <div class="pillar-box anim-stagger" data-d="0.3"><div class="label">工具</div><div class="value">工具链</div></div>
+    <div class="pillar-box anim-stagger" data-d="0.4"><div class="label">执行</div><div class="value">自动化脚本</div></div>
+    <div class="pillar-box anim-stagger" data-d="0.5"><div class="label">目标</div><div class="value">硬性约束</div></div>
+  </div>
+  <p style="margin-top:32px;font-size:22px;text-align:center" class="anim-stagger" data-d="0.6">Harness 是一套<span class="highlight heartbeat">实实在在的系统工程</span>，不是软性的管理方法</p>
+  <div class="slide-number">40</div>
+</div>
+
+<!-- ===== CHAPTER 9: DEEPER LOGIC (41-49) ===== -->
+<div class="slide hero alt trans-blur" data-slide="40" data-trans="blur">
+  <span class="tag blue anim-stagger" data-d="0">CHAPTER 6</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">深层逻辑</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">超越提示词的工程思维</p>
+  <div class="slide-number">41</div>
+</div>
+
+<div class="slide trans-fade" data-slide="41" data-trans="fade">
+  <span class="tag blue anim-stagger" data-d="0">BEYOND PROMPTS</span>
+  <h2 class="anim-stagger" data-d="0.1">以前我们天天研究怎么写提示词</h2>
+  <p style="margin-top:12px" class="anim-stagger" data-d="0.2">把希望寄托于那句"点石成金"的咒语</p>
+  <div class="row anim-stagger" style="margin-top:32px" data-d="0.3">
+    <div style="flex:1;text-align:center" class=" anim-stagger" data-d="0.3"><p style="font-size:14px;color:var(--text2)">旧的思路</p><p style="font-size:24px;color:var(--orange)">提示词魔法</p></div>
+    <div style="font-size:32px;color:var(--blue)" class="anim-stagger" data-d="0.45">→</div>
+    <div style="flex:1;text-align:center" class=" anim-stagger" data-d="0.5"><p style="font-size:14px;color:var(--text2)">新的范式</p><p style="font-size:24px;color:var(--blue) pulse">系统工程</p></div>
+  </div>
+  <div class="slide-number">42</div>
+</div>
+
+<div class="slide hero trans-scale-e" data-slide="42" data-trans="scale-e">
+  <span class="tag blue anim-stagger" data-d="0">CORE LOGIC</span>
+  <h1 style="font-size:44px" class="anim-stagger" data-d="0.12">模型提供的是<br><span class="highlight2 pulse">推理的蛮力</span></h1>
+  <h1 style="font-size:44px;margin-top:16px" class="anim-stagger" data-d="0.3">Harness提供的是<br><span class="highlight heartbeat">方向盘和刹车</span></h1>
+  <div class="divider anim-stagger" data-d="0.45"></div>
+  <p style="font-size:20px" class="anim-stagger" data-d="0.55">如果不套上这套缰绳，力气再大的烈马也拉不动精细的马车</p>
+  <div class="slide-number">43</div>
+</div>
+
+<div class="slide split trans-right" data-slide="43" data-trans="right">
+  <div>
+    <span class="tag blue anim-stagger" data-d="0">COMPARISON</span>
+    <h2 class="anim-stagger" data-d="0.1">蛮力 vs 驾驭</h2>
+    <div class="chart-box" id="chart-comparison" style="height:350px" data-d="0.2"></div>
+  </div>
+  <div>
+    <div class="card anim-stagger" style="border-left:4px solid var(--orange);margin-bottom:16px" data-d="0.3"><h4 style="color:var(--orange)">模型 = 蛮力</h4><p>概率性、随机性、不可控</p></div>
+    <div class="card anim-stagger" style="border-left:4px solid var(--blue)" data-d="0.5"><h4 style="color:var(--blue)">Harness = 驾驭</h4><p>确定性、系统性、可控</p></div>
+  </div>
+  <div class="slide-number">44</div>
+</div>
+
+<div class="slide trans-up" data-slide="44" data-trans="up">
+  <span class="tag blue anim-stagger" data-d="0">PROBABILITY</span>
+  <h2 class="anim-stagger" data-d="0.1">对抗AI天生的概率性</h2>
+  <div class="chart-box anim-stagger" id="chart-probability" style="margin-top:16px" data-d="0.2"></div>
+  <div class="chart-label anim-stagger" data-d="0.4">Harness用工程的确定性，去对抗AI大模型天生的概率性和随机性</div>
+  <div class="slide-number">45</div>
+</div>
+
+<!-- ===== CHAPTER 10: OS ANALOGY (46-52) ===== -->
+<div class="slide hero alt trans-blur" data-slide="45" data-trans="blur">
+  <span class="tag violet anim-stagger" data-d="0">CHAPTER 7</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">操作系统<br>类比</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">一个形象的类比可以记住</p>
+  <div class="slide-number">46</div>
+</div>
+
+<div class="slide split trans-left" data-slide="46" data-trans="left">
+  <div>
+    <span class="tag violet anim-stagger" data-d="0">ANALOGY</span>
+    <h2 class="anim-stagger" data-d="0.1">如果把AI Agent<br>看作手机APP...</h2>
+    <h1 style="font-size:48px;color:var(--blue);margin-top:16px" class="anim-stagger heartbeat" data-d="0.3">Harness<br>就是操作系统</h1>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-os-analogy" data-d="0.2"></div></div>
+  <div class="slide-number">47</div>
+</div>
+
+<div class="slide trans-fade" data-slide="47" data-trans="fade">
+  <span class="tag violet anim-stagger" data-d="0">OS FUNCTIONS</span>
+  <h2 class="anim-stagger" data-d="0.1">操作系统的核心调度能力</h2>
+  <div class="grid3 anim-stagger" style="margin-top:24px" data-d="0.2">
+    <div class="card anim-stagger" data-d="0.2"><div class="icon float">🔄</div><h4>流畅运行</h4><p>应用能不能流畅运行?</p></div>
+    <div class="card anim-stagger" data-d="0.32"><div class="icon float">⏸️</div><h4>防止卡死</h4><p>会不会卡死?</p></div>
+    <div class="card anim-stagger" data-d="0.44"><div class="icon float">🧹</div><h4>内存管理</h4><p>内存泄露了能不能被清理掉?</p></div>
+  </div>
+  <div class="quote border-pulse anim-stagger" data-d="0.55" style="margin-top:24px;max-width:800px"><p>"靠的不光是APP自己写的有多好，更是底下这个<span class="highlight">操作系统调度</span>的能力"</p></div>
+  <div class="slide-number">48</div>
+</div>
+
+<div class="slide trans-zoom" data-slide="48" data-trans="zoom">
+  <span class="tag violet anim-stagger" data-d="0">ARCHITECTURE</span>
+  <h2 class="anim-stagger" data-d="0.1">Harness 系统架构</h2>
+  <div class="chart-box anim-stagger" id="chart-architecture" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">49</div>
+</div>
+
+<!-- ===== CHAPTER 11: ULTIMATE GOAL (50-57) ===== -->
+<div class="slide hero trans-blur" data-slide="49" data-trans="blur">
+  <span class="tag green anim-stagger" data-d="0">CHAPTER 8</span>
+  <h1 style="font-size:52px" class="anim-stagger" data-d="0.12">终极目的</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">改造天才大脑</p>
+  <div class="slide-number">50</div>
+</div>
+
+<div class="slide hero alt trans-scale-e" data-slide="50" data-trans="scale-e">
+  <span class="tag green anim-stagger" data-d="0">GOAL</span>
+  <h1 style="font-size:44px" class="anim-stagger" data-d="0.12">把<span class="highlight2">天马行空</span>的<br>天才大脑</h1>
+  <h1 style="font-size:44px;margin-top:8px" class="anim-stagger" data-d="0.25">改造成一个</h1>
+  <div class="divider anim-stagger" data-d="0.35"></div>
+  <p style="font-size:28px;margin-top:12px" class="anim-stagger" data-d="0.45">能 <span class="highlight heartbeat">7×24小时</span> 稳定、可靠、不出错的<br><strong style="font-size:36px" class="shimmer-text">超级数字员工</strong></p>
+  <div class="slide-number">51</div>
+</div>
+
+<div class="slide split trans-right" data-slide="51" data-trans="right">
+  <div>
+    <span class="tag green anim-stagger" data-d="0">TRANSFORMATION</span>
+    <h2 class="anim-stagger" data-d="0.1">从天才大脑<br>到数字员工</h2>
+    <div class="chart-box" id="chart-transformation" style="height:300px" data-d="0.2"></div>
+  </div>
+  <div>
+    <ul>
+      <li class="anim-stagger" data-d="0.2">天马行空 → 目标导向</li>
+      <li class="anim-stagger" data-d="0.28">随机输出 → 稳定可靠</li>
+      <li class="anim-stagger" data-d="0.36">偶尔犯错 → 永不出错</li>
+      <li class="anim-stagger" data-d="0.44">需要监督 → 自主运行</li>
+      <li class="anim-stagger" data-d="0.52">间歇工作 → 7×24小时</li>
+    </ul>
+  </div>
+  <div class="slide-number">52</div>
+</div>
+
+<div class="slide trans-left" data-slide="52" data-trans="left">
+  <span class="tag green anim-stagger" data-d="0">IMPACT</span>
+  <h2 class="anim-stagger" data-d="0.1">Harness Engineering 的行业影响</h2>
+  <div class="chart-box anim-stagger" id="chart-impact" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">53</div>
+</div>
+
+<!-- ===== CHAPTER 12: PRACTICAL APPLICATIONS (54-60) ===== -->
+<div class="slide hero trans-blur" data-slide="53" data-trans="blur">
+  <span class="tag blue anim-stagger" data-d="0">CHAPTER 9</span>
+  <h1 style="font-size:52px" class="anim-stagger" data-d="0.12">实践应用</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">Harness Engineering 在企业中</p>
+  <div class="slide-number">54</div>
+</div>
+
+<div class="slide trans-fade" data-slide="54" data-trans="fade">
+  <span class="tag blue anim-stagger" data-d="0">USE CASES</span>
+  <h2 class="anim-stagger" data-d="0.1">企业级应用场景</h2>
+  <div class="chart-box anim-stagger" id="chart-usecases" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">55</div>
+</div>
+
+<div class="slide trans-up" data-slide="55" data-trans="up">
+  <span class="tag blue anim-stagger" data-d="0">STACK</span>
+  <h2 class="anim-stagger" data-d="0.1">Harness 技术栈全景</h2>
+  <div class="chart-box anim-stagger" id="chart-stack" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">56</div>
+</div>
+
+<div class="slide split trans-zoom" data-slide="56" data-trans="zoom">
+  <div>
+    <span class="tag green anim-stagger" data-d="0">BENEFITS</span>
+    <h2 class="anim-stagger" data-d="0.1">Harness带来的<br>核心收益</h2>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-benefits" data-d="0.2"></div></div>
+  <div class="slide-number">57</div>
+</div>
+
+<!-- ===== CHAPTER 13: FUTURE & OUTLOOK (58-64) ===== -->
+<div class="slide hero alt trans-blur" data-slide="57" data-trans="blur">
+  <span class="tag magenta anim-stagger" data-d="0">CHAPTER 10</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">未来展望</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">驾驭工程的演进方向</p>
+  <div class="slide-number">58</div>
+</div>
+
+<div class="slide trans-right" data-slide="58" data-trans="right">
+  <span class="tag magenta anim-stagger" data-d="0">TRENDS</span>
+  <h2 class="anim-stagger" data-d="0.1">Harness Engineering 发展趋势</h2>
+  <div class="chart-box anim-stagger" id="chart-trends" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">59</div>
+</div>
+
+<div class="slide trans-fade" data-slide="59" data-trans="fade">
+  <span class="tag magenta anim-stagger" data-d="0">MATURITY</span>
+  <h2 class="anim-stagger" data-d="0.1">技术成熟度曲线</h2>
+  <div class="chart-box anim-stagger" id="chart-maturity" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">60</div>
+</div>
+
+<div class="slide split trans-left" data-slide="60" data-trans="left">
+  <div>
+    <span class="tag magenta anim-stagger" data-d="0">ECOSYSTEM</span>
+    <h2 class="anim-stagger" data-d="0.1">Harness<br>生态系统</h2>
+    <p style="margin-top:8px" class="anim-stagger" data-d="0.2">从开源工具到企业平台的完整生态</p>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-ecosystem" data-d="0.2"></div></div>
+  <div class="slide-number">61</div>
+</div>
+
+<div class="slide trans-scale-e" data-slide="61" data-trans="scale-e">
+  <span class="tag blue anim-stagger" data-d="0">ADOPTION</span>
+  <h2 class="anim-stagger" data-d="0.1">企业采用率与成熟度</h2>
+  <div class="chart-box anim-stagger" id="chart-adoption" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">62</div>
+</div>
+
+<!-- ===== CHAPTER 14: DEEP DIVE (63-70) ===== -->
+<div class="slide hero trans-blur" data-slide="62" data-trans="blur">
+  <span class="tag violet anim-stagger" data-d="0">CHAPTER 11</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">深度解析</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">驾驭工程的技术细节</p>
+  <div class="slide-number">63</div>
+</div>
+
+<div class="slide split trans-right" data-slide="63" data-trans="right">
+  <div>
+    <span class="tag violet anim-stagger" data-d="0">DETERMINISTIC</span>
+    <h2 class="anim-stagger" data-d="0.1">工程的确定性<br>vs<br>AI的概率性</h2>
+    <p style="margin-top:12px" class="anim-stagger" data-d="0.25">这是Harness最根本的设计哲学</p>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-deterministic" data-d="0.2"></div></div>
+  <div class="slide-number">64</div>
+</div>
+
+<div class="slide trans-fade" data-slide="64" data-trans="fade">
+  <span class="tag violet anim-stagger" data-d="0">CONTROL</span>
+  <h2 class="anim-stagger" data-d="0.1">控制层次模型</h2>
+  <div class="chart-box anim-stagger" id="chart-control" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">65</div>
+</div>
+
+<div class="slide trans-left" data-slide="65" data-trans="left">
+  <span class="tag blue anim-stagger" data-d="0">WORKFLOW</span>
+  <h2 class="anim-stagger" data-d="0.1">典型 Harness 工作流</h2>
+  <div class="chart-box anim-stagger" id="chart-workflow" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">66</div>
+</div>
+
+<div class="slide split trans-up" data-slide="66" data-trans="up">
+  <div>
+    <span class="tag green anim-stagger" data-d="0">METRICS</span>
+    <h2 class="anim-stagger" data-d="0.1">关键性能<br>指标对比</h2>
+    <p style="margin-top:8px" class="anim-stagger" data-d="0.2">有Harness vs 无Harness的AI表现</p>
+  </div>
+  <div><div class="chart-box anim-stagger" id="chart-metrics" data-d="0.2"></div></div>
+  <div class="slide-number">67</div>
+</div>
+
+<!-- ===== CHAPTER 15: KEY INSIGHTS (68-75) ===== -->
+<div class="slide hero alt trans-blur" data-slide="67" data-trans="blur">
+  <span class="tag orange anim-stagger" data-d="0">CHAPTER 12</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">关键洞察</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">五个你必须记住的要点</p>
+  <div class="slide-number">68</div>
+</div>
+
+<div class="slide trans-zoom" data-slide="68" data-trans="zoom">
+  <span class="tag orange anim-stagger" data-d="0">INSIGHT 1</span>
+  <div class="row anim-stagger" style="margin-top:16px" data-d="0.15">
+    <div class="big-num color-shift" style="font-size:72px">01</div>
+    <div><h2>AI已不是工具，而是需要驾驭的力量</h2><p>当AI能写几万行代码、操作电脑时，它从工具变成了需要管理的自主力量</p></div>
+  </div>
+  <div class="slide-number">69</div>
+</div>
+
+<div class="slide trans-left" data-slide="69" data-trans="left">
+  <span class="tag orange anim-stagger" data-d="0">INSIGHT 2</span>
+  <div class="row anim-stagger" style="margin-top:16px" data-d="0.15">
+    <div class="big-num float" style="font-size:72px">02</div>
+    <div><h2>提示词不够，需要系统工程</h2><p>单靠提示词无法驯服强大的AI模型，需要完整的外骨骼基础设施</p></div>
+  </div>
+  <div class="slide-number">70</div>
+</div>
+
+<div class="slide trans-right" data-slide="70" data-trans="right">
+  <span class="tag orange anim-stagger" data-d="0">INSIGHT 3</span>
+  <div class="row anim-stagger" style="margin-top:16px" data-d="0.15">
+    <div class="big-num float" style="font-size:72px">03</div>
+    <div><h2>三层架构缺一不可</h2><p>约束规则 + 工具环境 + 反馈闭环，三者共同构成完整的Harness体系</p></div>
+  </div>
+  <div class="slide-number">71</div>
+</div>
+
+<div class="slide trans-fade" data-slide="71" data-trans="fade">
+  <span class="tag orange anim-stagger" data-d="0">INSIGHT 4</span>
+  <div class="row anim-stagger" style="margin-top:16px" data-d="0.15">
+    <div class="big-num float" style="font-size:72px">04</div>
+    <div><h2>用确定性对抗概率性</h2><p>Harness的核心哲学：用工程的确定性去对抗AI天生的概率性和随机性</p></div>
+  </div>
+  <div class="slide-number">72</div>
+</div>
+
+<div class="slide trans-scale-e" data-slide="72" data-trans="scale-e">
+  <span class="tag orange anim-stagger" data-d="0">INSIGHT 5</span>
+  <div class="row anim-stagger" style="margin-top:16px" data-d="0.15">
+    <div class="big-num color-shift" style="font-size:72px">05</div>
+    <div><h2>目标是7×24h超级数字员工</h2><p>终极目标：把天才大脑改造成稳定、可靠、永不出错的数字劳动力</p></div>
+  </div>
+  <div class="slide-number">73</div>
+</div>
+
+<!-- ===== CHAPTER 16: SUMMARY & OUTRO (74-78) ===== -->
+<div class="slide hero trans-blur" data-slide="73" data-trans="blur">
+  <span class="tag blue anim-stagger" data-d="0">RECAP</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">回顾总结</h1>
+  <p style="font-size:22px" class="anim-stagger" data-d="0.25">Harness Engineering 全貌</p>
+  <div class="slide-number">74</div>
+</div>
+
+<div class="slide trans-up" data-slide="74" data-trans="up">
+  <span class="tag blue anim-stagger" data-d="0">SUMMARY</span>
+  <h2 class="anim-stagger" data-d="0.1">Harness Engineering 全景图</h2>
+  <div class="chart-box anim-stagger" id="chart-summary" style="margin-top:16px" data-d="0.2"></div>
+  <div class="slide-number">75</div>
+</div>
+
+<div class="slide split trans-right" data-slide="75" data-trans="right">
+  <div>
+    <span class="tag green anim-stagger" data-d="0">TAKEAWAY</span>
+    <h2 class="anim-stagger" data-d="0.1">核心要点<br>一句话总结</h2>
+  </div>
+  <div>
+    <div class="quote border-pulse anim-stagger" data-d="0.2" style="max-width:500px"><p style="font-size:28px">模型提供<span class="highlight2">推理的蛮力</span>，Harness提供<span class="highlight">方向盘和刹车</span></p></div>
+    <div class="quote border-pulse anim-stagger" data-d="0.4" style="max-width:500px"><p style="font-size:28px">用<span class="highlight">工程的确定性</span>，对抗<span class="highlight2">AI的概率性</span></p></div>
+  </div>
+  <div class="slide-number">76</div>
+</div>
+
+<div class="slide hero alt trans-scale-e" data-slide="76" data-trans="scale-e">
+  <span class="tag magenta anim-stagger" data-d="0">THANK YOU</span>
+  <h1 style="font-size:56px" class="anim-stagger shimmer-text" data-d="0.15">驾驭AI<br>从这里开始</h1>
+  <div class="divider anim-stagger" data-d="0.3"></div>
+  <p style="font-size:22px;margin-top:16px" class="anim-stagger" data-d="0.4">Harness Engineering — 驾驭工程</p>
+  <p style="margin-top:12px;font-size:16px" class="anim-stagger" data-d="0.5">点赞 · 关注 · 收藏</p>
+  <div class="slide-number">77</div>
+</div>
+
+<div class="slide hero trans-fade" data-slide="77" data-trans="fade">
+  <div class="bg-pattern bg-animate"></div>
+  <span class="tag blue anim-stagger" data-d="0">THE END</span>
+  <h1 style="font-size:48px" class="anim-stagger" data-d="0.12">下期再见</h1>
+  <div class="divider anim-stagger" data-d="0.25"></div>
+  <p style="font-size:20px" class="anim-stagger" data-d="0.35">Harness Engineering 驾驭工程</p>
+  <div class="meta anim-stagger" data-d="0.5">感谢观看</div>
+  <div class="slide-number">78</div>
+</div>
+
+</div><!-- end app -->
+
+<div class="nav">
+  <button onclick="prevSlide()" title="上一页" >◂</button>
+  <span class="counter" id="counter">1 / 78</span>
+  <button onclick="nextSlide()" title="下一页" >▸</button>
+  <button onclick="toggleOverview()" title="概览" >⊞</button>
+</div>
+
+<script>
+let current=0,overviewMode=!1,transitioning=!1;
+const slides=document.querySelectorAll('.slide'),total=slides.length;
+const transitions=['trans-left','trans-right','trans-up','trans-down','trans-zoom','trans-fade','trans-blur','trans-scale-e'];
+
+function showSlide(n,dir){
+  if(transitioning)return;transitioning=!0;
+  const old=slides[current],idx=(n+total)%total,nu=slides[idx];
+  if(idx===current){transitioning=!1;return}
+
+  old.classList.remove('active');
+
+  let transClass='trans-fade';
+  if(dir===1) transClass=transitions[idx%transitions.length];
+  else if(dir===-1) transClass=transitions[(total-idx)%transitions.length];
+  else transClass=nu.getAttribute('data-trans')||'trans-fade';
+
+  nu.classList.add(transClass);
+  nu.style.display='flex';
+
+  // Pre-trigger charts before visible
+  initChartForSlide(idx);
+
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      nu.classList.add('active');
+      // START element animations DURING transition (50ms delay = overlap)
+      setTimeout(()=>applyAnimations(nu),50);
+      // Clean up after transition completes
+      setTimeout(()=>{
+        nu.classList.remove(transClass);
+        old.style.display='none';
+        old.style.className=old.className.replace(/trans-\S+/g,'');
+        current=idx;
+        updateUI();
+        transitioning=!1;
+      },650);
+    });
+  });
+}
+
+function applyAnimations(slide){
+  const els=slide.querySelectorAll('.anim-stagger');
+  els.forEach((el,i)=>{
+    el.style.animation='none';
+    el.offsetHeight;
+    const d=parseFloat(el.getAttribute('data-d')||0);
+    // Shorter delays: elements appear within 50-350ms (during 600ms transition)
+    const delay=d*500+(i*45);
+    el.style.animation=`fadeInStagger .5s cubic-bezier(.25,.46,.45,.94) ${delay}ms both`;
+  });
+  // Restart ALL continuous animations
+  slide.querySelectorAll('.pulse,.pulse-slow,.pulse-glow,.pulse-glow-slow,.float,.float-slow,.float-rotate,.heartbeat,.heartbeat-slow,.breathe,.subtle-glow,.gentle-swing,.color-shift,.border-pulse,.scale-breath,.shimmer-text,.shimmer-slow,.bg-animate,.bg-animate-fast').forEach(el=>{el.style.animation='none';el.offsetHeight;el.style.animation=''});
+  // Trigger chart animations
+  setTimeout(()=>{
+    slide.querySelectorAll('.chart-box').forEach(b=>{const id=b.id;if(id&&window.__charts&&window.__charts[id]){try{window.__charts[id].dispatchAction({type:'restore'})}catch(e){}}});
+  },300);
+  // Particles on hero slides
+  const pc=slide.querySelector('.particles');
+  if(pc&&!pc.hasChildNodes()){for(let i=0;i<20;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*6+'s';p.style.animationDuration=(4+Math.random()*8)+'s';p.style.width=(2+Math.random()*4)+'px';p.style.height=p.style.width;pc.appendChild(p)}}
+}
+
+function nextSlide(){showSlide(current+1,1)}
+function prevSlide(){showSlide(current-1,-1)}
+
+function updateUI(){
+  document.getElementById('counter').textContent=(current+1)+' / '+total;
+  document.getElementById('progress').style.width=((current+1)/total*100)+'%';
+}
+
+function toggleOverview(){
+  overviewMode=!overviewMode;const app=document.getElementById('app');
+  if(overviewMode){
+    slides.forEach(s=>{s.style.display='flex';s.style.transform='scale(.18)';s.style.position='relative';s.style.width='1280px';s.style.height='720px';s.style.flexShrink='0';s.classList.add('active')});
+    app.style.display='flex';app.style.flexWrap='wrap';app.style.gap='8px';app.style.justifyContent='center';app.style.width='auto';app.style.height='auto';
+    document.body.style.overflow='auto';document.body.style.alignItems='flex-start';
+  }else{
+    slides.forEach((s,i)=>{s.style.display='none';s.style.transform='';s.style.position='absolute';s.style.width='';s.style.height='';s.style.flexShrink='';if(i!==current)s.classList.remove('active')});
+    app.style.display='block';app.style.flexWrap='';app.style.gap='';app.style.width='1280px';app.style.height='720px';
+    document.body.style.overflow='hidden';document.body.style.alignItems='center';
+    slides[current].style.display='flex';slides[current].classList.add('active');
+  }
+}
+
+// Keyboard & mouse
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();nextSlide()}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevSlide()}
+  if(e.key==='Home'){e.preventDefault();showSlide(0,0)}
+  if(e.key==='End'){e.preventDefault();showSlide(total-1,0)}
+});
+document.addEventListener('wheel',e=>{
+  if(overviewMode)return;
+  if(e.deltaY>30){e.preventDefault();nextSlide()}
+  if(e.deltaY<-30){e.preventDefault();prevSlide()}
+},{passive:!1});
+// Touch swipe
+let touchStartY=0;
+document.addEventListener('touchstart',e=>{touchStartY=e.touches[0].clientY});
+document.addEventListener('touchend',e=>{
+  const diff=touchStartY-e.changedTouches[0].clientY;
+  if(Math.abs(diff)>50){if(diff>0)nextSlide();else prevSlide()}
+});
+
+// Ripple effect on click
+document.addEventListener('click',e=>{
+  const ripple=document.createElement('div');ripple.className='ripple-effect';
+  const size=Math.max(window.innerWidth,window.innerHeight);
+  ripple.style.width=ripple.style.height=size+'px';
+  ripple.style.left=e.clientX-size/2+'px';ripple.style.top=e.clientY-size/2+'px';
+  ripple.style.position='fixed';ripple.style.zIndex='999';document.body.appendChild(ripple);
+  setTimeout(()=>ripple.remove(),600);
+});
+
+// ECharts
+window.__charts={};
+const chartDefs=[
+  {id:'chart-viral',init:dom=>{const c=echarts.init(dom);c.setOption({tooltip:{trigger:'axis'},animationDuration:1200,animationEasing:'elasticOut',grid:{left:40,right:20,top:20,bottom:30},xAxis:{type:'category',data:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'],axisLabel:{color:'#586e75'}},yAxis:{type:'value',name:'提及次数',axisLabel:{color:'#586e75'}},series:[{name:'硅谷论坛',type:'line',data:[12,18,25,45,68,120,200,350],smooth:!0,lineStyle:{color:'#268bd2',width:3},itemStyle:{color:'#268bd2'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(38,139,210,.3)'},{offset:1,color:'rgba(38,139,210,0)'}]}}},{name:'国内大厂',type:'line',data:[5,10,18,35,55,90,160,280],smooth:!0,lineStyle:{color:'#cb4b16',width:3},itemStyle:{color:'#cb4b16'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(203,75,22,.3)'},{offset:1,color:'rgba(203,75,22,0)'}]}}},{name:'学术论文',type:'line',data:[8,12,20,38,50,85,140,220],smooth:!0,lineStyle:{color:'#859900',width:3},itemStyle:{color:'#859900'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(133,153,0,.3)'},{offset:1,color:'rgba(133,153,0,0)'}]}}}]});return c}},
+  {id:'chart-harness',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1500,animationEasing:'elasticOut',series:{type:'sunburst',data:[{name:'Harness\n马具',itemStyle:{color:'#268bd2'},children:[{name:'缰绳\n方向控制',value:10,itemStyle:{color:'#2aa198'}},{name:'马鞍\n稳定支撑',value:10,itemStyle:{color:'#859900'}},{name:'笼头\n安全约束',value:10,itemStyle:{color:'#cb4b16'}}]}],radius:[0,'90%'],label:{rotate:'radial',color:'#073642'}}});return c}},
+  {id:'chart-capability',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{trigger:'axis'},radar:{center:['50%','55%'],radius:'65%',indicator:[{name:'代码生成',max:100},{name:'工具调用',max:100},{name:'自主决策',max:100},{name:'长任务执行',max:100},{name:'多模态理解',max:100}],axisName:{color:'#586e75'}},series:[{name:'2022 AI',type:'radar',data:[{value:[40,20,15,10,55]}],lineStyle:{color:'#93a1a1'},areaStyle:{color:'rgba(147,161,161,.2)'},itemStyle:{color:'#93a1a1'}},{name:'2024 AI',type:'radar',data:[{value:[85,75,60,45,90]}],lineStyle:{color:'#268bd2'},areaStyle:{color:'rgba(38,139,210,.2)'},itemStyle:{color:'#268bd2'}},{name:'2026 AI',type:'radar',data:[{value:[95,90,80,70,95]}],lineStyle:{color:'#cb4b16'},areaStyle:{color:'rgba(203,75,22,.2)'},itemStyle:{color:'#cb4b16'}}]});return c}},
+  {id:'chart-paradox',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1200,tooltip:{trigger:'axis'},grid:{left:50,right:40,top:20,bottom:30},xAxis:{type:'category',data:['GPT-2','GPT-3','GPT-3.5','GPT-4','Claude 3','Claude 4'],axisLabel:{color:'#586e75'}},yAxis:[{type:'value',name:'能力指数',axisLabel:{color:'#586e75'}},{type:'value',name:'可控性风险',axisLabel:{color:'#586e75'}}],series:[{name:'能力指数',type:'bar',data:[10,30,55,75,85,95],itemStyle:{color:'#268bd2'},barWidth:20},{name:'失控风险',type:'line',yAxisIndex:1,data:[5,15,35,60,80,95],lineStyle:{color:'#dc322f',width:3},itemStyle:{color:'#dc322f'},smooth:!0}]});return c}},
+  {id:'chart-risk',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,animationEasing:'elasticOut',tooltip:{trigger:'item'},series:{type:'pie',radius:['50%','80%'],center:['50%','50%'],label:{color:'#073642'},emphasis:{label:{fontSize:18,fontWeight:'bold'}},data:[{value:30,name:'输出不可靠内容',itemStyle:{color:'#dc322f'}},{value:25,name:'偏离任务目标',itemStyle:{color:'#cb4b16'}},{value:20,name:'安全边界突破',itemStyle:{color:'#b58900'}},{value:15,name:'长任务迷失',itemStyle:{color:'#d33682'}},{value:10,name:'资源滥用',itemStyle:{color:'#6c71c4'}}]}});return c}},
+  {id:'chart-exoskeleton',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1200,series:[{type:'pie',radius:['65%','85%'],center:['50%','50%'],silent:!0,label:{show:!1},data:[{value:40,name:'约束规则',itemStyle:{color:'#268bd2'}},{value:30,name:'工具组装',itemStyle:{color:'#2aa198'}},{value:30,name:'反馈闭环',itemStyle:{color:'#859900'}}]},{type:'pie',radius:'50%',center:['50%','50%'],silent:!0,label:{color:'#073642',fontSize:16},data:[{value:100,name:'AI\n大模型',itemStyle:{color:'#eee8d5'}}]}],graphic:[{type:'text',left:'center',top:'10',style:{text:'外骨骼基础设施',fill:'#073642',fontSize:16,fontWeight:'bold'}}]});return c}},
+  {id:'chart-guardrail',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},grid:{left:50,right:20,top:20,bottom:30},xAxis:{type:'value',max:10,name:'风险等级',axisLabel:{color:'#586e75'},splitLine:{lineStyle:{color:'#eee8d5'}}},yAxis:{type:'value',max:10,name:'操作敏感度',axisLabel:{color:'#586e75'},splitLine:{lineStyle:{color:'#eee8d5'}}},series:[{type:'scatter',data:[[0,0],[2,1],[3,2]],symbolSize:30,itemStyle:{color:'#859900'},label:{show:!0,formatter:({dataIndex})=>['正常代码生成','API调用','文件操作'][dataIndex],color:'#586e75',fontSize:11}},{type:'scatter',data:[[7,3],[8,7],[9,8]],symbolSize:30,itemStyle:{color:'#dc322f'},label:{show:!0,formatter:({dataIndex})=>['敏感数据访问','系统命令执行','有害内容'][dataIndex],color:'#586e75',fontSize:11}}]});return c}},
+  {id:'chart-constraint-types',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:800,tooltip:{trigger:'item'},series:{type:'treemap',data:[{name:'硬性约束',value:40,itemStyle:{color:'#268bd2'},children:[{name:'代码规范',value:15},{name:'安全边界',value:15},{name:'API限流',value:10}]},{name:'软性引导',value:30,itemStyle:{color:'#2aa198'},children:[{name:'最佳实践',value:15},{name:'输出模板',value:15}]},{name:'自动拦截',value:30,itemStyle:{color:'#cb4b16'},children:[{name:'内容过滤',value:15},{name:'行为监控',value:15}]}],label:{color:'#fff',fontSize:13}}});return c}},
+  {id:'chart-tools',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{trigger:'item'},series:{type:'sankey',layout:'none',emphasis:{focus:'adjacency'},nodeAlign:'left',data:[{name:'AI模型'},{name:'浏览器工具'},{name:'代码沙盒'},{name:'知识库'},{name:'API网关'},{name:'文件系统'},{name:'数据库'},{name:'完成的任务'}],links:[{source:'AI模型',target:'浏览器工具',value:8},{source:'AI模型',target:'代码沙盒',value:10},{source:'AI模型',target:'知识库',value:6},{source:'AI模型',target:'API网关',value:7},{source:'AI模型',target:'文件系统',value:5},{source:'AI模型',target:'数据库',value:4},{source:'浏览器工具',target:'完成的任务',value:8},{source:'代码沙盒',target:'完成的任务',value:10},{source:'知识库',target:'完成的任务',value:6},{source:'API网关',target:'完成的任务',value:7},{source:'文件系统',target:'完成的任务',value:5},{source:'数据库',target:'完成的任务',value:4}],lineStyle:{color:'gradient',curveness:.5}}});return c}},
+  {id:'chart-pipeline',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},grid:{left:30,right:20,top:20,bottom:30},xAxis:{type:'category',data:['接收指令','环境准备','工具调用','方案验证','结果输出'],axisLabel:{color:'#586e75'}},yAxis:{type:'value',name:'成功率%',axisLabel:{color:'#586e75'}},series:[{name:'无Harness',type:'line',data:[95,80,55,45,35],lineStyle:{color:'#dc322f',width:2},itemStyle:{color:'#dc322f'},smooth:!0},{name:'有Harness',type:'line',data:[98,95,92,90,88],lineStyle:{color:'#268bd2',width:3},itemStyle:{color:'#268bd2'},smooth:!0,areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(38,139,210,.2)'},{offset:1,color:'rgba(38,139,210,0)'}]}}}]});return c}},
+  {id:'chart-checkpoints',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1200,tooltip:{},grid:{left:40,right:20,top:20,bottom:30},xAxis:{type:'category',data:['起点','检查站1','检查站2','检查站3','检查站4','终点'],axisLabel:{color:'#586e75'}},yAxis:{type:'value',name:'任务进度%',axisLabel:{color:'#586e75'}},series:[{type:'line',data:[0,22,48,65,85,100],lineStyle:{color:'#268bd2',width:4},itemStyle:{color:'#268bd2',borderWidth:3,borderColor:'#fff'},symbol:'circle',symbolSize:20,label:{show:!0,formatter:({value})=>value+'%',color:'#073642',fontSize:14}},{type:'scatter',data:[['检查站1',22],['检查站2',48],['检查站3',65],['检查站4',85]],symbolSize:30,itemStyle:{color:'#859900',borderWidth:2,borderColor:'#fff'},symbol:'pin'}]});return c}},
+  {id:'chart-feedback-value',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{trigger:'axis'},grid:{left:40,right:20,top:20,bottom:30},xAxis:{type:'category',data:['1h','2h','3h','4h','5h','6h'],axisLabel:{color:'#586e75'}},yAxis:{type:'value',name:'任务完成质量',axisLabel:{color:'#586e75'}},series:[{name:'有反馈闭环',type:'line',data:[95,93,92,91,90,89],lineStyle:{color:'#268bd2',width:3},itemStyle:{color:'#268bd2'},smooth:!0},{name:'无反馈闭环',type:'line',data:[90,78,62,48,35,22],lineStyle:{color:'#dc322f',width:3,type:'dashed'},itemStyle:{color:'#dc322f'},smooth:!0}]});return c}},
+  {id:'chart-comparison',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:800,tooltip:{trigger:'axis'},grid:{left:40,right:20,top:20,bottom:30},xAxis:{type:'category',data:['推理','约束','调度','监控','纠错','优化'],axisLabel:{color:'#586e75'}},yAxis:{type:'value',max:100,axisLabel:{color:'#586e75'}},series:[{name:'AI模型(蛮力)',type:'bar',data:[95,10,15,5,20,10],itemStyle:{color:'#cb4b16'},barWidth:20},{name:'Harness(驾驭)',type:'bar',data:[5,90,85,95,90,85],itemStyle:{color:'#268bd2'},barWidth:20}]});return c}},
+  {id:'chart-probability',init:dom=>{const c=echarts.init(dom);const d=[],p=[];for(let i=0;i<50;i++){d.push([i,80+Math.sin(i*.3)*3]);p.push([i,60+Math.sin(i*.5)*15+Math.random()*10])}c.setOption({animationDuration:1500,tooltip:{},grid:{left:40,right:20,top:20,bottom:30},xAxis:{type:'value',name:'时间',axisLabel:{color:'#586e75'}},yAxis:{type:'value',name:'输出一致性',axisLabel:{color:'#586e75'}},series:[{name:'Harness工程确定性',type:'line',data:d,lineStyle:{color:'#268bd2',width:3},itemStyle:{color:'#268bd2'},symbol:'none',smooth:!0},{name:'AI随机性波动',type:'line',data:p,lineStyle:{color:'#dc322f',width:2,type:'dashed'},itemStyle:{color:'#dc322f'},symbol:'none',smooth:!0}]});return c}},
+  {id:'chart-os-analogy',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,series:[{type:'pie',radius:['60%','80%'],center:['50%','50%'],label:{color:'#073642',fontSize:14},data:[{value:25,name:'资源调度',itemStyle:{color:'#268bd2'}},{value:25,name:'安全保障',itemStyle:{color:'#2aa198'}},{value:25,name:'错误恢复',itemStyle:{color:'#859900'}},{value:25,name:'通信协调',itemStyle:{color:'#b58900'}}]},{type:'pie',radius:'45%',center:['50%','50%'],label:{color:'#073642'},data:[{value:100,name:'AI Agent\n应用层',itemStyle:{color:'#eee8d5'}}]}],graphic:[{type:'text',left:'center',top:'10',style:{text:'操作系统架构类比',fill:'#073642',fontSize:16,fontWeight:'bold'}}]});return c}},
+  {id:'chart-architecture',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},series:{type:'sunburst',data:[{name:'Harness\n驾驭层',itemStyle:{color:'#268bd2'},children:[{name:'约束规则',itemStyle:{color:'#2aa198'},children:[{name:'安全边界',value:5},{name:'代码规范',value:5},{name:'内容过滤',value:5}]},{name:'工具组装',itemStyle:{color:'#859900'},children:[{name:'浏览器',value:4},{name:'沙盒',value:4},{name:'知识库',value:4}]},{name:'反馈闭环',itemStyle:{color:'#cb4b16'},children:[{name:'任务拆分',value:4},{name:'质量检查',value:4},{name:'自动纠错',value:4}]}]},{name:'AI模型\n核心层',itemStyle:{color:'#93a1a1'},children:[{name:'推理',value:6},{name:'生成',value:6},{name:'理解',value:6}]}],radius:[0,'90%'],label:{rotate:'radial',color:'#073642',fontSize:11}}});return c}},
+  {id:'chart-transformation',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},radar:{center:['50%','55%'],radius:'60%',indicator:[{name:'可靠性',max:100},{name:'稳定性',max:100},{name:'安全性',max:100},{name:'效率',max:100},{name:'自主性',max:100}],axisName:{color:'#586e75'}},series:[{name:'天才大脑',type:'radar',data:[{value:[30,25,20,60,80]}],lineStyle:{color:'#dc322f'},areaStyle:{color:'rgba(220,50,47,.15)'},itemStyle:{color:'#dc322f'}},{name:'数字员工',type:'radar',data:[{value:[90,95,88,85,75]}],lineStyle:{color:'#268bd2'},areaStyle:{color:'rgba(38,139,210,.15)'},itemStyle:{color:'#268bd2'}}]});return c}},
+  {id:'chart-impact',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:800,tooltip:{trigger:'axis'},grid:{left:50,right:20,top:20,bottom:30},xAxis:{type:'category',data:['软件开发','金融风控','医疗诊断','自动驾驶','内容审核','客户服务'],axisLabel:{color:'#586e75',rotate:15}},yAxis:{type:'value',name:'采用率%',axisLabel:{color:'#586e75'}},series:[{name:'2024',type:'bar',data:[25,15,10,8,30,20],itemStyle:{color:'#93a1a1'}},{name:'2025',type:'bar',data:[45,35,25,20,55,40],itemStyle:{color:'#268bd2'}},{name:'2026',type:'bar',data:[70,55,45,38,75,65],itemStyle:{color:'#2aa198'}}]});return c}},
+  {id:'chart-usecases',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,animationEasing:'elasticOut',tooltip:{},series:{type:'funnel',data:[{value:100,name:'AI Agent 部署',itemStyle:{color:'#268bd2'}},{value:78,name:'代码生成与审查',itemStyle:{color:'#2aa198'}},{value:62,name:'自动化运维',itemStyle:{color:'#859900'}},{value:45,name:'数据分析与决策',itemStyle:{color:'#b58900'}},{value:30,name:'安全合规自动化',itemStyle:{color:'#cb4b16'}},{value:18,name:'全自主工作流',itemStyle:{color:'#dc322f'}}],left:'center',width:'70%',label:{color:'#073642',fontSize:13}}});return c}},
+  {id:'chart-stack',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:800,tooltip:{},grid:{left:100,right:40,top:20,bottom:20},xAxis:{type:'value',axisLabel:{color:'#586e75'}},yAxis:{type:'category',data:['约束层','工具层','监控层','反馈层','调度层'],axisLabel:{color:'#586e75'}},series:[{type:'bar',data:[95,88,82,78,70],itemStyle:{color:params=>['#268bd2','#2aa198','#859900','#cb4b16','#b58900'][params.dataIndex]},barWidth:24,label:{show:!0,position:'right',formatter:'{c}%',color:'#586e75'}}]});return c}},
+  {id:'chart-benefits',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},grid:{left:40,right:20,top:20,bottom:30},xAxis:{type:'category',data:['错误率','响应时间','运维成本','开发效率','合规率'],axisLabel:{color:'#586e75',rotate:15}},yAxis:{type:'value',name:'改善幅度%',axisLabel:{color:'#586e75'}},series:[{type:'bar',data:[{value:-78,itemStyle:{color:'#859900'}},{value:-45,itemStyle:{color:'#2aa198'}},{value:-55,itemStyle:{color:'#268bd2'}},{value:85,itemStyle:{color:'#268bd2'}},{value:92,itemStyle:{color:'#859900'}}],barWidth:36,label:{show:!0,formatter:'{c}%',color:'#073642',fontSize:14}}]});return c}},
+  {id:'chart-trends',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1200,animationEasing:'elasticOut',tooltip:{trigger:'axis'},grid:{left:50,right:20,top:20,bottom:30},xAxis:{type:'category',data:['2023','2024','2025','2026','2027','2028'],axisLabel:{color:'#586e75'}},yAxis:{type:'value',name:'市场规模(亿美元)',axisLabel:{color:'#586e75'}},series:[{name:'Harness市场',type:'line',data:[2,8,25,65,140,280],smooth:!0,lineStyle:{color:'#268bd2',width:4},itemStyle:{color:'#268bd2'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(38,139,210,.3)'},{offset:1,color:'rgba(38,139,210,0)'}]}}},{name:'AI Agent市场',type:'line',data:[15,45,110,250,480,820],smooth:!0,lineStyle:{color:'#2aa198',width:4},itemStyle:{color:'#2aa198'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(42,161,152,.2)'},{offset:1,color:'rgba(42,161,152,0)'}]}}}]});return c}},
+  {id:'chart-maturity',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},grid:{left:40,right:40,top:20,bottom:30},xAxis:{type:'value',name:'技术成熟度',axisLabel:{color:'#586e75'},splitLine:{lineStyle:{color:'#eee8d5'}}},yAxis:{type:'value',name:'期望值',axisLabel:{color:'#586e75'},splitLine:{lineStyle:{color:'#eee8d5'}}},series:[{type:'line',data:[[10,8],[30,55],[50,82],[65,65],[75,45],[85,60],[95,85]],smooth:!0,lineStyle:{color:'#268bd2',width:3},symbol:'circle',symbolSize:12,itemStyle:{color:'#268bd2'},label:{show:!0,formatter:({dataIndex})=>['触发期','膨胀期','泡沫期','幻灭期','复苏期','成熟期','高原期'][dataIndex],color:'#586e75',fontSize:12,position:'bottom'}},{type:'scatter',data:[[65,65]],symbolSize:24,itemStyle:{color:'#cb4b16',borderWidth:3,borderColor:'#fff'},label:{show:!0,formatter:'当前',position:'top',color:'#cb4b16',fontWeight:'bold'}}]});return c}},
+  {id:'chart-ecosystem',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1200,tooltip:{},series:{type:'graph',layout:'force',force:{repulsion:200,edgeLength:80},roam:!0,data:[{name:'Harness Core',symbolSize:40,itemStyle:{color:'#268bd2'}},{name:'安全框架',symbolSize:25,itemStyle:{color:'#2aa198'}},{name:'工具编排',symbolSize:25,itemStyle:{color:'#859900'}},{name:'监控平台',symbolSize:25,itemStyle:{color:'#cb4b16'}},{name:'模型路由',symbolSize:20,itemStyle:{color:'#b58900'}},{name:'评估系统',symbolSize:20,itemStyle:{color:'#d33682'}},{name:'日志审计',symbolSize:20,itemStyle:{color:'#6c71c4'}},{name:'API网关',symbolSize:20,itemStyle:{color:'#dc322f'}},{name:'成本控制',symbolSize:20,itemStyle:{color:'#93a1a1'}}],links:[{source:'Harness Core',target:'安全框架'},{source:'Harness Core',target:'工具编排'},{source:'Harness Core',target:'监控平台'},{source:'安全框架',target:'模型路由'},{source:'安全框架',target:'API网关'},{source:'工具编排',target:'评估系统'},{source:'工具编排',target:'模型路由'},{source:'监控平台',target:'日志审计'},{source:'监控平台',target:'成本控制'},{source:'评估系统',target:'日志审计'}],label:{show:!0,color:'#073642',fontSize:11}}});return c}},
+  {id:'chart-adoption',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:800,tooltip:{trigger:'axis'},grid:{left:50,right:30,top:20,bottom:30},xAxis:{type:'category',data:['初创','A轮','B轮','C轮','上市','巨头'],axisLabel:{color:'#586e75'}},yAxis:{type:'value',name:'Harness采用率%',axisLabel:{color:'#586e75'}},series:[{type:'bar',data:[15,32,48,65,78,92],itemStyle:{color:params=>['#93a1a1','#2aa198','#268bd2','#6c71c4','#b58900','#cb4b16'][params.dataIndex]},barWidth:32,label:{show:!0,formatter:'{c}%',color:'#073642',fontSize:14}}]});return c}},
+  {id:'chart-deterministic',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},grid:{left:40,right:20,top:20,bottom:30},xAxis:{type:'category',data:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10'],axisLabel:{color:'#586e75'}},yAxis:{type:'value',name:'输出质量',min:0,max:100,axisLabel:{color:'#586e75'}},series:[{name:'Harness确定性底线',type:'line',data:[85,85,85,85,85,85,85,85,85,85],lineStyle:{color:'#268bd2',width:3},itemStyle:{color:'#268bd2'},symbol:'none',markArea:{silent:!0,data:[[{yAxis:80,itemStyle:{color:'rgba(38,139,210,.08)'}},{yAxis:100}]]}},{name:'AI原始输出',type:'line',data:[72,95,55,88,60,92,48,85,70,58],lineStyle:{color:'#dc322f',width:2},itemStyle:{color:'#dc322f'},symbol:'circle',symbolSize:8}]});return c}},
+  {id:'chart-control',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},series:{type:'sunburst',data:[{name:'战略层',itemStyle:{color:'#268bd2'},children:[{name:'目标定义',value:10},{name:'边界设定',value:10},{name:'伦理框架',value:10}]},{name:'战术层',itemStyle:{color:'#2aa198'},children:[{name:'任务拆解',value:10},{name:'资源分配',value:8},{name:'优先级',value:8}]},{name:'执行层',itemStyle:{color:'#859900'},children:[{name:'实时监控',value:10},{name:'质量检查',value:8},{name:'自动纠错',value:8}]},{name:'反馈层',itemStyle:{color:'#cb4b16'},children:[{name:'结果评估',value:8},{name:'经验学习',value:6},{name:'持续优化',value:6}]}],radius:[0,'90%'],label:{rotate:'radial',color:'#073642',fontSize:10}}});return c}},
+  {id:'chart-workflow',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{},series:{type:'graph',layout:'none',data:[{name:'指令输入',x:50,y:50,symbolSize:35,itemStyle:{color:'#268bd2'}},{name:'任务分析',x:200,y:50,symbolSize:30,itemStyle:{color:'#2aa198'}},{name:'环境准备',x:350,y:120,symbolSize:25,itemStyle:{color:'#859900'}},{name:'工具调用',x:350,y:200,symbolSize:25,itemStyle:{color:'#b58900'}},{name:'质量检查',x:500,y:160,symbolSize:30,itemStyle:{color:'#cb4b16'}},{name:'通过',x:600,y:80,symbolSize:25,itemStyle:{color:'#859900'}},{name:'重做',x:450,y:260,symbolSize:20,itemStyle:{color:'#dc322f'}},{name:'结果输出',x:700,y:160,symbolSize:35,itemStyle:{color:'#268bd2'}}],links:[{source:'指令输入',target:'任务分析',lineStyle:{color:'#93a1a1',width:2}},{source:'任务分析',target:'环境准备'},{source:'环境准备',target:'工具调用'},{source:'工具调用',target:'质量检查'},{source:'质量检查',target:'通过',label:{show:!0,formatter:'✓',color:'#859900',fontSize:16},lineStyle:{color:'#859900',width:2}},{source:'质量检查',target:'重做',label:{show:!0,formatter:'✗',color:'#dc322f',fontSize:16},lineStyle:{color:'#dc322f',width:2,curveness:.3}},{source:'重做',target:'工具调用',lineStyle:{color:'#dc322f',width:2,type:'dashed',curveness:.3}},{source:'通过',target:'结果输出',lineStyle:{color:'#859900',width:2}}],label:{show:!0,color:'#073642',fontSize:11,position:'bottom'}}});return c}},
+  {id:'chart-metrics',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1000,tooltip:{trigger:'axis'},grid:{left:50,right:20,top:20,bottom:30},legend:{data:['有Harness','无Harness'],textStyle:{color:'#586e75'}},radar:{center:['50%','55%'],radius:'60%',indicator:[{name:'任务完成率',max:100},{name:'输出准确度',max:100},{name:'安全合规',max:100},{name:'响应速度',max:100},{name:'资源效率',max:100}],axisName:{color:'#586e75'}},series:[{name:'有Harness',type:'radar',data:[{value:[92,88,95,85,90]}],lineStyle:{color:'#268bd2',width:3},areaStyle:{color:'rgba(38,139,210,.2)'},itemStyle:{color:'#268bd2'}},{name:'无Harness',type:'radar',data:[{value:[55,60,40,70,50]}],lineStyle:{color:'#dc322f',width:2},areaStyle:{color:'rgba(220,50,47,.1)'},itemStyle:{color:'#dc322f'}}]});return c}},
+  {id:'chart-summary',init:dom=>{const c=echarts.init(dom);c.setOption({animationDuration:1500,animationEasing:'elasticOut',tooltip:{},series:{type:'sunburst',data:[{name:'Harness\nEngineering',itemStyle:{color:'#268bd2'},children:[{name:'Layer 1\n约束与规则',itemStyle:{color:'#2aa198'},children:[{name:'安全边界',value:4},{name:'代码规范',value:3},{name:'内容过滤',value:3}]},{name:'Layer 2\n环境与工具',itemStyle:{color:'#859900'},children:[{name:'浏览器',value:3},{name:'沙盒',value:3},{name:'知识库',value:3},{name:'API网关',value:2}]},{name:'Layer 3\n反馈闭环',itemStyle:{color:'#cb4b16'},children:[{name:'任务拆分',value:3},{name:'质量检查',value:3},{name:'自动纠错',value:3}]}]},{name:'AI大模型\n(推理蛮力)',itemStyle:{color:'#93a1a1'}}],radius:[0,'85%'],label:{rotate:'radial',color:'#073642',fontSize:10}}});return c}}
+];
+
+function initChartForSlide(idx){
+  const slide=slides[idx];const boxes=slide.querySelectorAll('.chart-box');
+  boxes.forEach(box=>{const id=box.id;if(!id||window.__charts[id])return;
+    const def=chartDefs.find(d=>d.id===id);
+    if(def){try{window.__charts[id]=def.init(box)}catch(e){console.error('Chart init error:',id,e)}
+      if(window.__charts[id]){new ResizeObserver(()=>{try{window.__charts[id]&&window.__charts[id].resize()}catch(e){}}).observe(box)}}
+  });
+}
+
+// Init on load
+window.addEventListener('load',()=>{
+  initChartForSlide(0);
+  setTimeout(()=>applyAnimations(slides[0]),100);
+});
+window.addEventListener('resize',()=>{Object.values(window.__charts).forEach(c=>{try{c.resize()}catch(e){}})});
+</script>
+</body>
+</html>

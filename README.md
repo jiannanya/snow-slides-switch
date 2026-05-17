@@ -227,15 +227,30 @@ The `offsetHeight` read forces the browser to perform layout, flushing the anima
 
 ---
 
+## 🎬 Live Demo
+
+Open [`assets/demo.html`](./assets/demo.html) in any modern browser — no server required.
+
+The demo is a **78-slide HTML presentation** on *Harness Engineering* that showcases every feature of this system:
+- All 9 transition effects across chapter openers
+- Per-element stagger animations on every content slide
+- Continuous animations: `pulse`, `float`, `shimmer-text`, and more
+- ECharts charts coordinated with slide transitions
+- Hero-slide particle system, click ripple effect
+- Keyboard, mouse-wheel, and touch navigation
+
+---
+
 ## 📁 File Structure
 
 ```
 snow-slides-switch/
-├── index.html      # Full working example (77-slide presentation)
-├── SKILL.md        # Copilot skill — Chinese
-├── SKILL.en.md     # Copilot skill — English
-├── README.md       # This file (English)
-└── README.zh.md    # Chinese documentation
+├── assets/
+│   └── demo.html       # Built-in demo — 78-slide presentation (open directly in browser)
+├── SKILL.md            # Copilot skill — English
+├── SKILL_cn.md         # Copilot skill — Chinese
+├── README.md           # This file (English)
+└── README.zh.md        # Chinese documentation
 ```
 
 ---

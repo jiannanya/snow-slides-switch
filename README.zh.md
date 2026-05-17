@@ -228,15 +228,30 @@ el.style.animation = '';       // 恢复 —— 浏览器从第 0 帧重播
 
 ---
 
+## 🎬 在线演示
+
+用任意现代浏览器直接打开 [`assets/demo.html`](./assets/demo.html)，无需服务器。
+
+演示文稿共 **78 页**，主题为《Harness Engineering · 驾驭工程》，完整展示本系统所有特性：
+- 全部 9 种切换效果（各章节封面各不相同）
+- 所有内容页的元素分批入场动画
+- 持续动画：`pulse`、`float`、`shimmer-text` 等
+- ECharts 图表与页面切换协调
+- 英雄页粒子系统、点击涟漪效果
+- 键盘、鼠标滚轮、触屏导航
+
+---
+
 ## 📁 文件结构
 
 ```
 snow-slides-switch/
-├── index.html      # 完整示例（77 页演示文稿）
-├── SKILL.md        # Copilot 技能文件 — 中文
-├── SKILL.en.md     # Copilot 技能文件 — 英文
-├── README.md       # 英文文档
-└── README.zh.md    # 本文件（中文）
+├── assets/
+│   └── demo.html       # 内置演示文稿 —— 78 页 PPT（浏览器直接打开）
+├── SKILL.md            # Copilot 技能文件 — 英文
+├── SKILL_cn.md         # Copilot 技能文件 — 中文
+├── README.md           # 英文文档
+└── README.zh.md        # 本文件（中文）
 ```
 
 ---

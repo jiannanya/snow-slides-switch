@@ -370,7 +370,36 @@ el.style.animation = '';
 
 ---
 
-## V. Quick Integration Checklist
+## V. Built-in Demo
+
+A fully functional 78-slide HTML presentation is bundled as a skill asset:
+[assets/demo.html](./assets/demo.html)
+
+### What it demonstrates
+
+| Feature | Where to look |
+|---------|---------------|
+| All 9 transition effects | Every chapter opener uses a different `data-trans` value |
+| `anim-stagger` + `data-d` timing | All content slides — elements enter in layered waves |
+| Continuous animations (`pulse`, `float`, `shimmer-text`, …) | Hero slides and icon cards |
+| ECharts chart integration with transition coordination | Slides with `.chart-box` elements |
+| Particle system on hero slides | Chapter title slides (`.particles` div) |
+| Ripple click effect | Click anywhere on the presentation |
+| Keyboard / wheel / touch navigation | Arrow keys, scroll, swipe |
+
+### How to run
+
+Open `assets/demo.html` directly in any modern browser — no server required.
+
+```
+snow-slides-switch/
+└── assets/
+    └── demo.html   ← open this file
+```
+
+---
+
+## VI. Quick Integration Checklist
 
 - [ ] Copy **CSS layout** + **transition classes** + **keyframes** into `<style>`
 - [ ] Copy **JavaScript engine** into `<script>` (implement `updateUI()` as needed)
@@ -378,3 +407,4 @@ el.style.animation = '';
 - [ ] Add `.anim-stagger` + `data-d` to all elements that need entrance animation
 - [ ] First slide: `class="slide active"` — remaining slides: `class="slide"`
 - [ ] Confirm `CONTINUOUS_ANIM_CLASSES` lists every continuous-animation class used in the project
+- [ ] Reference `[assets/demo.html](./assets/demo.html)` when showing users a live example

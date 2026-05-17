@@ -369,7 +369,36 @@ el.style.animation = '';
 
 ---
 
-## 五、快速集成清单
+## 五、内置演示文件
+
+技能资产中内置了一个完整的 78 页 HTML 演示文稿：
+[assets/demo.html](./assets/demo.html)
+
+### 演示内容对照
+
+| 功能特性 | 在演示中的位置 |
+|----------|----------------|
+| 全部 9 种切换效果 | 每个章节封面页使用不同的 `data-trans` 值 |
+| `anim-stagger` + `data-d` 分批入场 | 所有内容页——元素按层次波浪式出现 |
+| 持续动画（`pulse`、`float`、`shimmer-text` 等） | 英雄页和图标卡片 |
+| ECharts 图表与切换协调 | 含 `.chart-box` 的幻灯片 |
+| 英雄页粒子系统 | 章节标题页（含 `.particles` div） |
+| 点击涟漪效果 | 点击演示页面任意位置 |
+| 键盘 / 滚轮 / 触屏导航 | 方向键、滚动、滑动 |
+
+### 运行方式
+
+用任意现代浏览器直接打开 `assets/demo.html`，无需服务器。
+
+```
+snow-slides-switch/
+└── assets/
+    └── demo.html   ← 直接打开此文件
+```
+
+---
+
+## 六、快速集成清单
 
 - [ ] 复制 **CSS 基础布局** + **切换效果类** + **关键帧** 到 `<style>`
 - [ ] 复制 **JavaScript 切换引擎** 到 `<script>`（替换 `updateUI()` 为实际实现）
@@ -377,3 +406,4 @@ el.style.animation = '';
 - [ ] 需要入场动画的元素添加 `.anim-stagger` 和 `data-d` 属性
 - [ ] 第一页添加 `class="slide active"`，其余页只有 `class="slide"`
 - [ ] 确认 `CONTINUOUS_ANIM_CLASSES` 列表包含项目中使用的所有持续动画类名
+- [ ] 向用户展示实例时引用 [`assets/demo.html`](./assets/demo.html)
